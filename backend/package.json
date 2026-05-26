@@ -1,0 +1,9 @@
+{
+  "name": "keda-crm-activity-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "科大 CRM 活动管理页面",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

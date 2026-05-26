@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>活动问卷调查</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell survey-shell embedded-shell">
+      <main class="survey-layout">
+        <section class="panel survey-panel">
+          <form id="surveyForm" class="form-grid survey-form" novalidate>
+            <input id="sourceCode" name="sourceCode" type="hidden" />
+            <input id="questionnaireTemplate" name="questionnaireTemplate" type="hidden" />
+            <div class="form-field">
+              <label for="surveyActivityName">活动名称</label>
+              <input id="surveyActivityName" name="activityName" type="text" readonly />
+            </div>
+            <div class="form-field required">
+              <label for="personName">姓名</label>
+              <input id="personName" name="personName" type="text" required />
+            </div>
+            <div class="form-field required">
+              <label for="phone">手机号</label>
+              <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="11" autocomplete="tel" required />
+              <div class="field-hint" id="phoneHint" aria-live="polite"></div>
+            </div>
+            <div class="form-field">
+              <label for="email">邮箱</label>
+              <input id="email" name="email" type="email" />
+            </div>
+            <div class="form-field required">
+              <label for="company">企业名称</label>
+              <input id="company" name="company" type="text" required />
+            </div>
+            <div class="form-field required">
+              <label for="position">职位</label>
+              <input id="position" name="position" type="text" required />
+            </div>
+            <div class="form-field">
+              <label>性别</label>
+              <div class="radio-pill-group">
+                <label class="radio-pill">
+                  <input name="gender" type="radio" value="男" />
+                  <span>男</span>
+                </label>
+                <label class="radio-pill female">
+                  <input name="gender" type="radio" value="女" />
+                  <span>女</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field required">
+              <label for="education">最高学历</label>
+              <select id="education" name="education" required>
+                <option value="">请选择</option>
+                <option value="大专">大专</option>
+                <option value="本科">本科</option>
+                <option value="硕士">硕士</option>
+                <option value="博士">博士</option>
+              </select>
+            </div>
+            <div class="form-field required" id="managerYearsField">
+              <label for="managerYears">担任高层管理工作年限</label>
+              <input id="managerYears" name="managerYears" type="number" min="0" required />
+            </div>
+            <div class="form-field">
+              <label for="wechat">微信号</label>
+              <input id="wechat" name="wechat" type="text" />
+            </div>
+            <div class="form-field required" id="idCardField">
+              <label for="idCard">身份证号（仅用于活动入校使用）</label>
+              <input id="idCard" name="idCard" type="text" inputmode="text" maxlength="18" required />
+              <div class="field-hint" id="idCardHint" aria-live="polite"></div>
+            </div>
+            <div class="form-field required" id="signupSourceField">
+              <label for="signupSource">您的报名来源</label>
+              <select id="signupSource" name="signupSource" required>
+                <option value="">请选择</option>
+                <option value="招生老师邀约">招生老师邀约</option>
+                <option value="校友/在校生">校友/在校生</option>
+                <option value="公众号等新媒体">公众号等新媒体</option>
+                <option value="校友推荐">校友推荐</option>
+                <option value="EMBA 伯乐推荐">EMBA 伯乐推荐</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="form-field required">
+              <label for="referrer">推荐人</label>
+              <input id="referrer" name="referrer" type="text" placeholder="请填写推荐人，没有推荐人填“无”即可" required />
+            </div>
+            <div class="form-field required intention-field" id="intentionField">
+              <label>您是否有意向了解中国科大管理学院、科技商学院项目</label>
+              <div class="plain-radio-group">
+                <label>
+                  <input name="intention" type="radio" value="是，我想了解" required />
+                  <span>是，我想了解</span>
+                </label>
+                <label>
+                  <input name="intention" type="radio" value="否，我仅对本次活动感兴趣" />
+                  <span>否，我仅对本次活动感兴趣</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field required wide project-type-field" id="projectTypeField" hidden>
+              <label>项目类型</label>
+              <div class="plain-radio-group">
+                <label>
+                  <input name="projectType" type="radio" value="学历项目" />
+                  <span>学历项目</span>
+                </label>
+                <label>
+                  <input name="projectType" type="radio" value="非学历项目" />
+                  <span>非学历项目</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field required wide" id="directionField" hidden>
+              <label for="direction" id="directionLabel">报考方向</label>
+              <select id="direction" name="direction"></select>
+            </div>
+            <div class="form-field wide">
+              <label for="concern">您最关心的企业经营管理问题是什么？</label>
+              <textarea id="concern" name="concern" rows="4"></textarea>
+            </div>
+          </form>
+
+          <div class="drawer-foot inline-foot">
+            <span id="surveyStatus" class="status-text"></span>
+            <button class="button primary" id="submitSurveyButton" type="submit" form="surveyForm">提交</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="survey-confirm-mask" id="surveyConfirm" role="dialog" aria-modal="true" aria-labelledby="surveyConfirmTitle" hidden>
+      <section class="survey-confirm-card">
+        <h2 id="surveyConfirmTitle">提交确认</h2>
+        <div class="survey-confirm-content">
+          <p>提交前请确保:</p>
+          <p>提交的所有申请资料均真实可靠，并愿对因虚假信息导致的申请失败或资格取消承担全部责任。同意中国科大科技商学院、管理学院保留所有申请资料。</p>
+          <p>提交成功后，3个工作日内查看活动提醒短信以及入校短信。</p>
+        </div>
+        <div class="survey-confirm-actions">
+          <button class="button" id="cancelSurveyConfirmButton" type="button">返回修改</button>
+          <button class="button primary" id="confirmSurveySubmitButton" type="button">确认提交</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="./questionnaire.js"></script>
+  </body>
+</html>

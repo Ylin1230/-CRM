@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>潜在考生管理</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell embedded-shell">
+      <main class="layout">
+        <section class="panel data-panel lead-panel" aria-label="潜在考生数据管理">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button class="button primary" id="newLeadButton" type="button"><span aria-hidden="true">＋</span> 新建</button>
+              <button class="button ghost" id="batchAssignButton" type="button" disabled>批量分配</button>
+              <button class="button ghost" id="confirmAdmissionButton" type="button" disabled>确认入学</button>
+              <button class="button ghost" id="archiveLeadButton" type="button" disabled>归档</button>
+              <button class="button ghost" id="deleteLeadButton" type="button" disabled>删除</button>
+            </div>
+            <div class="toolbar-right">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m16 16 4 4"></path>
+                </svg>
+                <input id="leadSearchInput" type="search" placeholder="搜索数据" aria-label="搜索数据" />
+                <span aria-hidden="true">⌄</span>
+              </div>
+              <button class="icon-button tool-icon-button" id="reloadLeadsButton" type="button" title="刷新" aria-label="刷新">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+                  <path d="M21 3v6h-6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table lead-table">
+              <thead>
+                <tr>
+                  <th class="check-col"><input id="leadCheckAll" type="checkbox" /></th>
+                  <th>姓名</th>
+                  <th>手机号</th>
+                  <th>性别</th>
+                  <th>年龄</th>
+                  <th>报考方向</th>
+                  <th>最高学历</th>
+                  <th>工作单位</th>
+                  <th>职务</th>
+                  <th>来源渠道</th>
+                  <th>推荐人</th>
+                  <th>意愿情况</th>
+                  <th>线索状态</th>
+                  <th>对接人</th>
+                </tr>
+              </thead>
+              <tbody id="leadRows"></tbody>
+            </table>
+            <div class="empty-state" id="leadEmptyState" hidden>暂无潜在考生数据</div>
+          </div>
+
+          <div class="pager">
+            <span id="leadRecordSummary">共 0 条</span>
+            <div class="pager-actions">
+              <button class="button compact" id="leadPrevPageButton" type="button">上一页</button>
+              <span id="leadPageLabel">第 1 页</span>
+              <button class="button compact" id="leadNextPageButton" type="button">下一页</button>
+              <select class="control compact-select" id="leadPageSizeSelect" aria-label="每页条数">
+                <option value="10">10 条/页</option>
+                <option value="20" selected>20 条/页</option>
+                <option value="50">50 条/页</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <div class="detail-mask" id="leadDetailMask" hidden></div>
+        <section class="panel detail-page lead-detail-page" id="leadDetailPage" aria-label="潜在考生详情" hidden>
+          <div class="detail-toolbar">
+            <div class="detail-toolbar-left">
+              <button class="icon-button" id="closeLeadDetailButton" type="button" title="关闭" aria-label="关闭">×</button>
+              <button class="icon-button" id="editLeadDetailButton" type="button" title="编辑" aria-label="编辑">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 20h4.7L19.2 9.5a2.1 2.1 0 0 0 0-3L17.5 4.8a2.1 2.1 0 0 0-3 0L4 15.3V20Z"></path>
+                  <path d="m13.7 5.7 4.6 4.6"></path>
+                </svg>
+              </button>
+              <button class="button compact primary" id="detailConfirmAdmissionButton" type="button">确认入学</button>
+              <button class="button compact" id="detailArchiveButton" type="button">归档</button>
+            </div>
+            <div class="detail-toolbar-right">
+              <span id="leadDetailPosition">- / -</span>
+              <button class="icon-button" id="prevLeadDetailButton" type="button" title="上一条">‹</button>
+              <button class="icon-button" id="nextLeadDetailButton" type="button" title="下一条">›</button>
+            </div>
+          </div>
+
+          <div class="detail-body lead-detail-body">
+            <div class="lead-title-line">
+              <span>标题</span>
+              <strong id="leadDetailTitle">-</strong>
+            </div>
+            <div class="detail-grid lead-detail-grid">
+              <div class="detail-field"><span>线索编号</span><div class="detail-value" id="detailLeadCode">-</div></div>
+              <div class="detail-field"><span>姓名</span><div class="detail-value" id="detailLeadName">-</div></div>
+              <div class="detail-field"><span>手机号</span><div class="detail-value" id="detailLeadPhone">-</div></div>
+              <div class="detail-field"><span>性别</span><div class="detail-value" id="detailLeadGender">-</div></div>
+              <div class="detail-field"><span>年龄</span><div class="detail-value" id="detailLeadAge">-</div></div>
+              <div class="detail-field"><span>报考方向</span><div class="detail-value" id="detailLeadDirection">-</div></div>
+              <div class="detail-field"><span>信息提交时间</span><div class="detail-value" id="detailLeadSubmitTime">-</div></div>
+              <div class="detail-field"><span>最高学历</span><div class="detail-value" id="detailLeadEducation">-</div></div>
+              <div class="detail-field"><span>工作单位</span><div class="detail-value" id="detailLeadCompany">-</div></div>
+              <div class="detail-field"><span>职务</span><div class="detail-value" id="detailLeadPosition">-</div></div>
+              <div class="detail-field"><span>行业</span><div class="detail-value" id="detailLeadIndustry">-</div></div>
+              <div class="detail-field"><span>来源渠道</span><div class="detail-value" id="detailLeadSource">-</div></div>
+              <div class="detail-field"><span>对接人</span><div class="detail-value" id="detailLeadOwner">-</div></div>
+              <div class="detail-field"><span>推荐人</span><div class="detail-value" id="detailLeadReferrer">-</div></div>
+              <div class="detail-field"><span>意愿情况</span><div class="detail-value" id="detailLeadIntention">-</div></div>
+              <div class="detail-field"><span>电子邮箱</span><div class="detail-value" id="detailLeadEmail">-</div></div>
+              <div class="detail-field wide"><span>所在城市</span><div class="detail-value" id="detailLeadCity">-</div></div>
+              <div class="detail-field"><span>是否参加见面会</span><div class="detail-value" id="detailLeadMeetup">-</div></div>
+              <div class="detail-field"><span>是否报名</span><div class="detail-value" id="detailLeadSignup">-</div></div>
+              <div class="detail-field"><span>是否确认报名</span><div class="detail-value" id="detailLeadConfirmed">-</div></div>
+              <div class="detail-field"><span>是否参加考试</span><div class="detail-value" id="detailLeadExam">-</div></div>
+              <div class="detail-field"><span>首次联系时间</span><div class="detail-value" id="detailLeadFirstContact">-</div></div>
+              <div class="detail-field"><span>最新联系时间</span><div class="detail-value" id="detailLeadLatestContact">-</div></div>
+              <div class="detail-field"><span>联系结果报告</span><div class="detail-value" id="detailLeadReport">-</div></div>
+              <div class="detail-field"><span>线索状态</span><div class="detail-value" id="detailLeadStatus">-</div></div>
+            </div>
+
+            <section class="follow-section">
+              <div class="follow-section-head">
+                <h2>跟进记录</h2>
+                <button class="button compact ghost" id="newFollowButton" type="button">＋ 新建</button>
+              </div>
+              <div class="follow-table-wrap">
+                <table class="data-table follow-table">
+                  <thead>
+                    <tr>
+                      <th>跟进方式</th>
+                      <th>沟通时间</th>
+                      <th>下次跟进时间</th>
+                      <th>跟进内容</th>
+                      <th>提交人</th>
+                    </tr>
+                  </thead>
+                  <tbody id="followRows"></tbody>
+                </table>
+                <div class="follow-empty" id="followEmpty">暂无跟进记录</div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="drawer-mask" id="leadDrawerMask" hidden></div>
+    <section class="editor-drawer lead-editor-drawer" id="leadDrawer" aria-label="潜在考生提交编辑" aria-hidden="true">
+      <header class="drawer-head">
+        <h2 id="leadDrawerTitle">新增潜在考生</h2>
+        <button class="icon-button" id="closeLeadDrawerButton" type="button" aria-label="关闭">×</button>
+      </header>
+      <form id="leadForm" class="form-grid lead-form">
+        <input id="leadRecordId" type="hidden" />
+        <div class="form-field"><label for="leadCodeInput">线索编号</label><input id="leadCodeInput" type="text" disabled placeholder="自动生成无需填写" /></div>
+        <div class="form-field required"><label for="leadNameInput">姓名</label><input id="leadNameInput" type="text" required /></div>
+        <div class="form-field required"><label for="leadPhoneInput">手机号</label><input id="leadPhoneInput" type="tel" required /></div>
+        <div class="form-field"><label for="leadGenderInput">性别</label><select id="leadGenderInput"><option value="">请选择</option><option>男</option><option>女</option></select></div>
+        <div class="form-field"><label for="leadAgeInput">年龄</label><input id="leadAgeInput" type="number" min="0" /></div>
+        <div class="form-field"><label for="leadDirectionInput">报考方向</label><select id="leadDirectionInput"></select></div>
+        <div class="form-field"><label for="leadSubmitTimeInput">信息提交时间</label><input id="leadSubmitTimeInput" type="datetime-local" /></div>
+        <div class="form-field"><label for="leadEducationInput">最高学历</label><select id="leadEducationInput"></select></div>
+        <div class="form-field"><label for="leadCompanyInput">工作单位</label><input id="leadCompanyInput" type="text" /></div>
+        <div class="form-field"><label for="leadPositionInput">职务</label><input id="leadPositionInput" type="text" /></div>
+        <div class="form-field"><label for="leadIndustryInput">行业</label><select id="leadIndustryInput"></select></div>
+        <div class="form-field"><label for="leadSourceInput">来源渠道</label><select id="leadSourceInput"></select></div>
+        <div class="form-field"><label for="leadOwnerInput">对接人</label><select id="leadOwnerInput"></select></div>
+        <div class="form-field"><label for="leadReferrerInput">推荐人</label><input id="leadReferrerInput" type="text" /></div>
+        <div class="form-field"><label for="leadIntentionInput">意愿情况</label><select id="leadIntentionInput"></select></div>
+        <div class="form-field"><label for="leadEmailInput">电子邮箱</label><input id="leadEmailInput" type="email" /></div>
+        <div class="form-field wide"><label for="leadCityInput">所在城市</label><input id="leadCityInput" type="text" /></div>
+        <div class="form-field"><label for="leadMeetupInput">是否参加见面会</label><select id="leadMeetupInput"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+        <div class="form-field"><label for="leadSignupInput">是否报名</label><select id="leadSignupInput"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+        <div class="form-field"><label for="leadConfirmedInput">是否确认报名</label><select id="leadConfirmedInput"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+        <div class="form-field"><label for="leadExamInput">是否参加考试</label><select id="leadExamInput"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+        <div class="form-field"><label for="leadFirstContactInput">首次联系时间</label><input id="leadFirstContactInput" type="datetime-local" /></div>
+        <div class="form-field"><label for="leadLatestContactInput">最新联系时间</label><input id="leadLatestContactInput" type="datetime-local" /></div>
+        <div class="form-field"><label for="leadStatusInput">线索状态</label><select id="leadStatusInput"></select></div>
+        <div class="form-field wide"><label for="leadReportInput">联系结果报告</label><textarea id="leadReportInput" rows="3"></textarea></div>
+      </form>
+      <div class="drawer-foot">
+        <span id="leadFormHint">准备提交</span>
+        <div>
+          <button class="button" id="cancelLeadButton" type="button">取消</button>
+          <button class="button primary" id="saveLeadButton" type="submit" form="leadForm">保存</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="drawer-mask" id="followDrawerMask" hidden></div>
+    <section class="editor-drawer follow-drawer" id="followDrawer" aria-label="跟进记录提交编辑" aria-hidden="true">
+      <header class="drawer-head">
+        <h2>跟进记录</h2>
+        <button class="icon-button" id="closeFollowDrawerButton" type="button" aria-label="关闭">×</button>
+      </header>
+      <form id="followForm" class="form-grid follow-form">
+        <div class="form-field required"><label for="followNameInput">姓名</label><input id="followNameInput" type="text" required /></div>
+        <div class="form-field"><label for="followMethodInput">跟进方式</label><select id="followMethodInput"></select></div>
+        <div class="form-field required"><label for="followContactTimeInput">沟通时间</label><input id="followContactTimeInput" type="datetime-local" required /></div>
+        <div class="form-field"><label for="followNextTimeInput">下次跟进时间</label><input id="followNextTimeInput" type="datetime-local" /></div>
+        <div class="form-field wide"><label for="followContentInput">跟进内容</label><textarea id="followContentInput" rows="3"></textarea></div>
+      </form>
+      <div class="drawer-foot">
+        <span id="followFormHint">线索编号自动关联</span>
+        <div>
+          <button class="button" id="cancelFollowButton" type="button">取消</button>
+          <button class="button primary" id="saveFollowButton" type="submit" form="followForm">保存</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="modal-mask" id="assignModal" hidden>
+      <section class="modal-card assign-card" role="dialog" aria-modal="true" aria-labelledby="assignModalTitle">
+        <header class="modal-head">
+          <h2 id="assignModalTitle">批量分配</h2>
+          <button class="icon-button" id="closeAssignModalButton" type="button" aria-label="关闭">×</button>
+        </header>
+        <div class="modal-body">
+          <div class="form-field required">
+            <label for="assignOwnerInput">对接人</label>
+            <select id="assignOwnerInput" required></select>
+          </div>
+          <p class="muted-line" id="assignHint">请选择对接人，提交后线索状态将置为已分配。</p>
+        </div>
+        <footer class="modal-actions">
+          <button class="button" id="cancelAssignButton" type="button">取消</button>
+          <button class="button primary" id="saveAssignButton" type="button">确定</button>
+        </footer>
+      </section>
+    </div>
+
+    <script src="./leads.js"></script>
+  </body>
+</html>

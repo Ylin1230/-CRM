@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>消息推送</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell sms-shell">
+      <header class="topbar">
+        <div class="title-block">
+          <h1>消息推送</h1>
+          <span id="smsCloudState">接口检测中</span>
+        </div>
+        <div class="topbar-actions">
+          <a class="link-button" href="./index.html">活动管理</a>
+          <button class="icon-button" id="smsReloadButton" type="button" title="刷新">⟳</button>
+        </div>
+      </header>
+
+      <main class="sms-layout">
+        <section class="panel sms-recipient-panel" aria-label="接收人列表">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <div class="segmented-control" aria-label="接收人类型">
+                <button class="segment-button active" data-source="activityStudent" type="button">活动学员</button>
+                <button class="segment-button" data-source="lead" type="button">潜在考生</button>
+              </div>
+              <span class="tag info" id="sourceCountTag">0 人</span>
+            </div>
+            <div class="toolbar-right">
+              <input class="control search-control" id="recipientSearchInput" type="search" placeholder="搜索姓名、手机号、活动/方向" />
+              <button class="icon-button" id="clearRecipientSearchButton" type="button" title="清空搜索">×</button>
+            </div>
+          </div>
+
+          <div class="recipient-workspace" id="recipientWorkspace">
+            <aside class="activity-sms-sidebar" id="activitySmsSidebar" aria-label="活动列表">
+              <div class="activity-sms-head">
+                <span>活动列表</span>
+                <strong id="activitySmsCount">0 场</strong>
+              </div>
+              <div class="activity-sms-list" id="activitySmsList"></div>
+            </aside>
+
+            <div class="recipient-list-pane">
+              <div class="recipient-list-head" id="recipientListHead">
+                <div>
+                  <strong id="recipientListTitle">全部活动学员</strong>
+                  <span id="recipientListMeta">请选择活动查看报名列表</span>
+                </div>
+                <button class="button compact" id="selectCurrentActivityButton" type="button">选中当前活动</button>
+              </div>
+
+              <div class="table-wrap">
+                <table class="data-table sms-table">
+                  <thead>
+                    <tr id="recipientHeader"></tr>
+                  </thead>
+                  <tbody id="recipientRows"></tbody>
+                </table>
+                <div class="empty-state" id="recipientEmptyState" hidden>暂无接收人数据</div>
+              </div>
+
+              <div class="pager">
+                <span id="recipientRecordSummary">共 0 条</span>
+                <div class="pager-actions">
+                  <button class="button compact" id="recipientPrevPageButton" type="button">上一页</button>
+                  <span id="recipientPageLabel">第 1 页</span>
+                  <button class="button compact" id="recipientNextPageButton" type="button">下一页</button>
+                  <select class="control compact-select" id="recipientPageSizeSelect" aria-label="每页条数">
+                    <option value="20" selected>20 条/页</option>
+                    <option value="50">50 条/页</option>
+                    <option value="100">100 条/页</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel sms-composer-panel" aria-label="短信发送设置">
+          <div class="panel-head">
+            <h2>发送设置</h2>
+            <span class="tag info" id="selectedCountTag">已选 0 人</span>
+          </div>
+
+          <div class="sms-composer-body">
+            <div class="form-field">
+              <label>群发时间</label>
+              <div class="segmented-control full">
+                <button class="segment-button active" data-send-mode="immediate" type="button">立即发送</button>
+                <button class="segment-button" data-send-mode="scheduled" type="button">预约发送</button>
+              </div>
+            </div>
+
+            <div class="form-field" id="scheduleField" hidden>
+              <label for="scheduledAt">预约时间</label>
+              <input id="scheduledAt" type="datetime-local" />
+            </div>
+
+            <div class="form-field">
+              <label>通知类型</label>
+              <div class="template-row" aria-label="短信模板">
+                <button class="button compact" data-template="activity" type="button">活动提醒</button>
+                <button class="button compact" data-template="exam" type="button">考试通知</button>
+                <button class="button compact" data-template="follow" type="button">回访提醒</button>
+              </div>
+            </div>
+
+            <div class="form-field wide">
+              <label for="smsContent">通知内容</label>
+              <textarea id="smsContent" rows="8"></textarea>
+              <div class="field-meta">
+                <span id="smsCharCount">0/500</span>
+                <span id="smsModeTag">模拟发送</span>
+              </div>
+            </div>
+
+            <div class="variable-row" aria-label="短信变量">
+              <button class="tag muted" data-variable="姓名" type="button">{姓名}</button>
+              <button class="tag muted" data-variable="活动名称" type="button">{活动名称}</button>
+              <button class="tag muted" data-variable="报考方向" type="button">{报考方向}</button>
+              <button class="tag muted" data-variable="企业名称" type="button">{企业名称}</button>
+            </div>
+
+            <div class="sms-preview">
+              <div class="sms-preview-title">预览</div>
+              <p id="smsPreviewText">请选择接收人并填写通知内容</p>
+            </div>
+          </div>
+
+          <div class="drawer-foot inline-foot">
+            <span id="smsComposerHint">准备就绪</span>
+            <button class="button primary" id="sendSmsButton" type="button" disabled>发送</button>
+          </div>
+        </aside>
+
+        <section class="panel sms-log-panel" aria-label="发送记录">
+          <div class="panel-head">
+            <h2>发送记录</h2>
+            <button class="button compact" id="reloadSmsLogsButton" type="button">刷新记录</button>
+          </div>
+          <div class="sms-log-list" id="smsLogList"></div>
+        </section>
+      </main>
+
+      <footer class="statusbar">
+        <span id="smsStatusText">准备就绪</span>
+      </footer>
+    </div>
+
+    <script src="./sms.js"></script>
+  </body>
+</html>

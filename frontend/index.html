@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>活动管理</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell embedded-shell">
+      <main class="layout">
+        <section class="panel data-panel" aria-label="活动数据管理">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button class="button primary" id="newButton" type="button"><span aria-hidden="true">＋</span> 新建</button>
+              <button class="button ghost" id="printQrButton" type="button" disabled title="打印二维码">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 8V4h10v4"></path>
+                  <path d="M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path>
+                  <path d="M7 14h10v6H7z"></path>
+                </svg>
+                打印
+              </button>
+              <button class="button ghost" id="deleteButton" type="button" disabled title="删除">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 6h18"></path>
+                  <path d="M8 6V4h8v2"></path>
+                  <path d="M6 6l1 15h10l1-15"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                </svg>
+                删除
+              </button>
+            </div>
+            <div class="toolbar-right">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m16 16 4 4"></path>
+                </svg>
+                <input id="searchInput" type="search" placeholder="搜索数据" aria-label="搜索数据" />
+                <span aria-hidden="true">⌄</span>
+              </div>
+              <button class="icon-button tool-icon-button" id="filterButton" type="button" title="筛选" aria-label="筛选">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 5h18"></path>
+                  <path d="M7 12h10"></path>
+                  <path d="M10 19h4"></path>
+                </svg>
+              </button>
+              <button class="icon-button tool-icon-button" id="sortButton" type="button" title="排序" aria-label="排序">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 4v16"></path>
+                  <path d="m4 7 3-3 3 3"></path>
+                  <path d="M17 20V4"></path>
+                  <path d="m14 17 3 3 3-3"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="toolbar-popover filter-popover" id="filterPopover" hidden>
+              <h3>筛选条件</h3>
+              <div class="condition-copy">
+                <span>筛选出符合以下</span>
+                <select id="filterRelation" aria-label="筛选条件关系">
+                  <option value="all">所有</option>
+                  <option value="any">任一</option>
+                </select>
+                <span>条件的数据</span>
+              </div>
+              <div class="filter-fields">
+                <label>
+                  <span>活动类型</span>
+                  <select id="typeFilter" aria-label="活动类型筛选">
+                    <option value="">全部类型</option>
+                    <option value="体验营">体验营</option>
+                    <option value="直播">直播</option>
+                    <option value="讲座">讲座</option>
+                    <option value="走访">走访</option>
+                    <option value="沙龙">沙龙</option>
+                  </select>
+                </label>
+                <label>
+                  <span>活动所属部门</span>
+                  <input id="deptFilter" type="search" placeholder="输入部门关键词" />
+                </label>
+              </div>
+              <div class="popover-actions">
+                <button class="button primary compact" id="applyFilterButton" type="button">确定</button>
+                <button class="button compact" id="clearFilterButton" type="button">清空</button>
+              </div>
+            </div>
+
+            <div class="toolbar-popover sort-popover" id="sortPopover" hidden>
+              <div class="sort-title">排序规则</div>
+              <div class="sort-rule">
+                <select id="sortField" aria-label="排序字段">
+                  <option value="">选择排序字段</option>
+                  <option value="code">活动编号</option>
+                  <option value="name">活动名称</option>
+                  <option value="type">活动类型</option>
+                  <option value="start">活动开始日期</option>
+                  <option value="end">活动结束日期</option>
+                  <option value="dept">活动所属部门</option>
+                  <option value="count">活动人数</option>
+                  <option value="creator">提交人</option>
+                  <option value="createTime">提交时间</option>
+                </select>
+                <div class="sort-direction" role="group" aria-label="排序方向">
+                  <button class="active" id="sortAscButton" type="button" data-direction="asc">升序</button>
+                  <button id="sortDescButton" type="button" data-direction="desc">降序</button>
+                </div>
+                <button class="icon-button tool-icon-button" id="clearSortButton" type="button" title="清空排序" aria-label="清空排序">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6h18"></path>
+                    <path d="M8 6V4h8v2"></path>
+                    <path d="M6 6l1 15h10l1-15"></path>
+                    <path d="M10 11v6"></path>
+                    <path d="M14 11v6"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="popover-actions">
+                <button class="button primary compact" id="applySortButton" type="button">确定</button>
+                <button class="button compact text-button" id="resetSortButton" type="button">清空全部</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="check-col"><input id="checkAll" type="checkbox" /></th>
+                  <th>活动编号</th>
+                  <th>活动名称</th>
+                  <th>活动类型</th>
+                  <th>活动开始日期</th>
+                  <th>活动结束日期</th>
+                  <th>活动所属部门</th>
+                  <th class="number-col">活动人数</th>
+                  <th>问卷二维码</th>
+                  <th>提交人</th>
+                  <th>提交时间</th>
+                </tr>
+              </thead>
+              <tbody id="activityRows"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState" hidden>暂无活动数据</div>
+          </div>
+
+          <div class="pager">
+            <span id="recordSummary">共 0 条</span>
+            <div class="pager-actions">
+              <button class="button compact" id="prevPageButton" type="button">上一页</button>
+              <span id="pageLabel">第 1 页</span>
+              <button class="button compact" id="nextPageButton" type="button">下一页</button>
+              <select class="control compact-select" id="pageSizeSelect" aria-label="每页条数">
+                <option value="10">10 条/页</option>
+                <option value="20" selected>20 条/页</option>
+                <option value="50">50 条/页</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <div class="detail-mask" id="detailMask" hidden></div>
+        <section class="panel detail-page" id="detailPage" aria-label="活动详情" hidden>
+          <div class="detail-toolbar">
+            <div class="detail-toolbar-left">
+              <button class="icon-button" id="backToListButton" type="button" title="关闭" aria-label="关闭">×</button>
+              <button class="icon-button" id="detailEditButton" type="button" title="编辑" aria-label="编辑">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 20h4.7L19.2 9.5a2.1 2.1 0 0 0 0-3L17.5 4.8a2.1 2.1 0 0 0-3 0L4 15.3V20Z"></path>
+                  <path d="m13.7 5.7 4.6 4.6"></path>
+                </svg>
+              </button>
+              <button class="icon-button" id="detailPrintButton" type="button" title="打印二维码" aria-label="打印二维码">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 8V4h10v4"></path>
+                  <path d="M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path>
+                  <path d="M7 14h10v6H7z"></path>
+                </svg>
+              </button>
+              <button class="icon-button danger-icon" id="detailDeleteButton" type="button" title="删除" aria-label="删除">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 6h18"></path>
+                  <path d="M8 6V4h8v2"></path>
+                  <path d="M6 6l1 15h10l1-15"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="detail-toolbar-right">
+              <span id="detailPosition">- / -</span>
+              <button class="icon-button" id="prevDetailButton" type="button" title="上一条">‹</button>
+              <button class="icon-button" id="nextDetailButton" type="button" title="下一条">›</button>
+              <button class="icon-button detail-cancel-edit" id="cancelDetailEditButton" type="button" title="取消编辑" aria-label="取消编辑" hidden>×</button>
+            </div>
+          </div>
+
+          <div class="detail-body">
+            <div class="detail-grid">
+              <div class="detail-field">
+                <span>活动编号</span>
+                <div class="detail-value" id="detailCode">-</div>
+              </div>
+              <div class="detail-field">
+                <span>活动名称</span>
+                <div class="detail-value" id="detailName">-</div>
+              </div>
+              <div class="detail-field">
+                <span>活动类型</span>
+                <div class="detail-value" id="detailType">-</div>
+              </div>
+              <div class="detail-field">
+                <span>活动开始日期</span>
+                <div class="detail-value" id="detailStart">-</div>
+              </div>
+              <div class="detail-field">
+                <span>活动结束日期</span>
+                <div class="detail-value" id="detailEnd">-</div>
+              </div>
+              <div class="detail-field">
+                <span>活动所属部门</span>
+                <div class="detail-value" id="detailDept">-</div>
+              </div>
+              <div class="detail-field">
+                <span>活动人数</span>
+                <div class="detail-value" id="detailCount">-</div>
+              </div>
+              <div class="detail-field">
+                <span>问卷模版</span>
+                <div class="detail-value" id="detailTemplate">-</div>
+              </div>
+              <div class="detail-field qr-detail-field">
+                <span>问卷二维码</span>
+                <div class="detail-value" id="detailQr">未生成</div>
+              </div>
+            </div>
+            <div class="detail-meta">
+              <div class="detail-meta-item">
+                <span>提交人</span>
+                <strong id="detailCreator">-</strong>
+              </div>
+              <div class="detail-meta-item">
+                <span>提交时间</span>
+                <strong id="detailCreateTime">-</strong>
+              </div>
+              <div class="detail-meta-item">
+                <span>更新时间</span>
+                <strong id="detailUpdateTime">-</strong>
+              </div>
+              <div class="detail-meta-item">
+                <span>数据ID</span>
+                <strong id="detailDataId">-</strong>
+              </div>
+            </div>
+          </div>
+          <div class="detail-edit-footer" id="detailEditFooter" hidden>
+            <button class="button primary" id="detailSaveButton" type="button">修改</button>
+          </div>
+        </section>
+      </main>
+
+    </div>
+
+    <div class="drawer-mask" id="drawerMask" hidden></div>
+    <section class="editor-drawer" id="editorDrawer" aria-label="活动提交编辑" aria-hidden="true">
+      <header class="drawer-head">
+        <h2 id="drawerTitle">新增活动</h2>
+        <button class="icon-button" id="closeDrawerButton" type="button" title="关闭">×</button>
+      </header>
+
+      <form id="activityForm" class="form-grid">
+        <input id="recordId" type="hidden" />
+        <div class="form-field">
+          <label for="activityCode">活动编号</label>
+          <input id="activityCode" name="code" type="text" placeholder="自动生成无需填写" disabled />
+        </div>
+        <div class="form-field required">
+          <label for="activityName">活动名称</label>
+          <input id="activityName" name="name" type="text" required />
+        </div>
+        <div class="form-field">
+          <label for="activityType">活动类型</label>
+          <select id="activityType" name="type">
+            <option value="">请选择</option>
+            <option value="体验营">体验营</option>
+            <option value="直播">直播</option>
+            <option value="讲座">讲座</option>
+            <option value="走访">走访</option>
+            <option value="沙龙">沙龙</option>
+          </select>
+        </div>
+        <div class="form-field required">
+          <label for="startDate">活动开始日期</label>
+          <input class="detail-input activity-date-input" id="startDate" name="start" type="date" required />
+        </div>
+        <div class="form-field required">
+          <label for="endDate">活动结束日期</label>
+          <input class="detail-input activity-date-input" id="endDate" name="end" type="date" required />
+        </div>
+        <div class="form-field required">
+          <label for="department">活动所属部门</label>
+          <select id="department" name="dept" required>
+            <option value="">请选择部门</option>
+          </select>
+        </div>
+        <div class="form-field required">
+          <label for="activityCount">活动人数</label>
+          <input id="activityCount" name="count" type="number" min="0" required />
+        </div>
+        <div class="form-field required">
+          <label for="questionnaireTemplate">问卷模版</label>
+          <select id="questionnaireTemplate" name="questionnaireTemplate" required>
+            <option value="活动讲座模版">活动讲座模版</option>
+            <option value="展架等宣传品通用模版">展架等宣传品通用模版</option>
+          </select>
+        </div>
+        <div class="form-field wide" id="generatedQrField" hidden>
+          <label for="generatedQr">问卷二维码</label>
+          <input id="generatedQr" name="qr" type="text" placeholder="保存后根据活动编号和活动名称生成" readonly />
+        </div>
+      </form>
+
+      <div class="drawer-foot">
+        <span id="formHint">准备提交</span>
+        <div>
+          <button class="button" id="cancelButton" type="button">取消</button>
+          <button class="button primary" id="saveButton" type="submit" form="activityForm">保存</button>
+        </div>
+      </div>
+    </section>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
