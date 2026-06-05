@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI智能助手</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell embedded-shell ai-shell">
+      <main class="ai-layout" aria-label="AI智能助手">
+        <section class="panel ai-main-panel">
+          <div class="ai-head">
+            <div>
+              <h1>AI智能助手</h1>
+              <span id="aiContextText">只读问数模式，不会修改任何业务数据</span>
+            </div>
+            <button class="button compact" id="refreshContextButton" type="button">刷新上下文</button>
+          </div>
+
+          <div class="ai-kpi-grid" id="aiCards">
+            <div class="ai-kpi-card">
+              <span>数据范围</span>
+              <strong>CRM 只读查询</strong>
+              <em>活动、报名、潜在考生、跟进记录</em>
+            </div>
+            <div class="ai-kpi-card">
+              <span>当前模式</span>
+              <strong>问数问答</strong>
+              <em>先分析再回答，可继续追问</em>
+            </div>
+            <div class="ai-kpi-card">
+              <span>安全边界</span>
+              <strong>不执行写入</strong>
+              <em>不会新增、编辑、删除数据</em>
+            </div>
+          </div>
+
+          <div class="ai-chat-shell">
+            <div class="ai-chat-stream" id="chatStream" aria-live="polite">
+              <article class="ai-message assistant">
+                <div class="ai-avatar">AI</div>
+                <div class="ai-bubble">
+                  <p>你可以问我活动报名、线索状态、对接人分配、跟进超期、重复报名等问题。我会基于当前 CRM 数据做只读分析。</p>
+                  <div class="ai-quick-list" id="quickQuestions"></div>
+                </div>
+              </article>
+            </div>
+
+            <form class="ai-input-bar" id="aiForm">
+              <input id="aiInput" type="search" placeholder="例如：本周哪个活动报名最多？有哪些线索未分配？" autocomplete="off" />
+              <button class="button primary" id="sendButton" type="submit">发送</button>
+            </form>
+          </div>
+        </section>
+
+        <aside class="panel ai-side-panel" aria-label="AI洞察">
+          <div class="ai-side-head">
+            <strong>洞察与建议</strong>
+            <span id="aiModeText">read-only</span>
+          </div>
+          <div class="ai-warning-list" id="warningList">
+            <div class="ai-empty-side">暂无预警，提问后会在这里汇总风险点。</div>
+          </div>
+          <div class="ai-suggestion-block">
+            <strong>可问问题</strong>
+            <button type="button" data-question="今天活动报名情况怎么样？">今天活动报名情况怎么样？</button>
+            <button type="button" data-question="本周哪个活动报名最多？">本周哪个活动报名最多？</button>
+            <button type="button" data-question="有哪些潜在考生还没有分配对接人？">有哪些潜在考生还没有分配对接人？</button>
+            <button type="button" data-question="哪些跟进已经超期？">哪些跟进已经超期？</button>
+            <button type="button" data-question="最近报名趋势有没有异常？">最近报名趋势有没有异常？</button>
+          </div>
+          <div class="ai-readonly-note">
+            当前版本只读取数据并生成建议。涉及批量分配、提醒、归档等动作，后续会做成“先建议、再人工确认执行”。
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./ai.js"></script>
+  </body>
+</html>

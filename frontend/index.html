@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>活动管理</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=202606031735" />
   </head>
-  <body>
+  <body class="activity-page-body">
     <div class="app-shell embedded-shell">
       <main class="layout">
         <section class="panel data-panel" aria-label="活动数据管理">
@@ -68,23 +68,20 @@
                 </select>
                 <span>条件的数据</span>
               </div>
-              <div class="filter-fields">
-                <label>
-                  <span>活动类型</span>
-                  <select id="typeFilter" aria-label="活动类型筛选">
-                    <option value="">全部类型</option>
-                    <option value="体验营">体验营</option>
-                    <option value="直播">直播</option>
-                    <option value="讲座">讲座</option>
-                    <option value="走访">走访</option>
-                    <option value="沙龙">沙龙</option>
-                  </select>
-                </label>
-                <label>
-                  <span>活动所属部门</span>
-                  <input id="deptFilter" type="search" placeholder="输入部门关键词" />
-                </label>
+              <div class="filter-builder">
+                <button class="filter-add-button" id="addFilterConditionButton" type="button">＋ 添加筛选条件</button>
+                <div class="filter-field-picker" id="filterFieldPicker" hidden>
+                  <label class="filter-field-search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="11" cy="11" r="7"></circle>
+                      <path d="m16 16 4 4"></path>
+                    </svg>
+                    <input id="filterFieldSearch" type="search" placeholder="搜索字段" aria-label="搜索筛选字段" />
+                  </label>
+                  <div class="filter-field-list" id="filterFieldList" role="listbox"></div>
+                </div>
               </div>
+              <div class="filter-conditions" id="filterConditions"></div>
               <div class="popover-actions">
                 <button class="button primary compact" id="applyFilterButton" type="button">确定</button>
                 <button class="button compact" id="clearFilterButton" type="button">清空</button>
@@ -103,6 +100,7 @@
                   <option value="end">活动结束日期</option>
                   <option value="dept">活动所属部门</option>
                   <option value="count">活动人数</option>
+                  <option value="qrStatus">二维码状态</option>
                   <option value="creator">提交人</option>
                   <option value="createTime">提交时间</option>
                 </select>
@@ -135,13 +133,16 @@
                   <th>活动编号</th>
                   <th>活动名称</th>
                   <th>活动类型</th>
+                  <th>报考方向预设</th>
                   <th>活动开始日期</th>
                   <th>活动结束日期</th>
                   <th>活动所属部门</th>
                   <th class="number-col">活动人数</th>
+                  <th>二维码状态</th>
                   <th>问卷二维码</th>
                   <th>提交人</th>
                   <th>提交时间</th>
+                  <th class="action-col">操作</th>
                 </tr>
               </thead>
               <tbody id="activityRows"></tbody>
@@ -150,16 +151,25 @@
           </div>
 
           <div class="pager">
-            <span id="recordSummary">共 0 条</span>
-            <div class="pager-actions">
-              <button class="button compact" id="prevPageButton" type="button">上一页</button>
-              <span id="pageLabel">第 1 页</span>
-              <button class="button compact" id="nextPageButton" type="button">下一页</button>
-              <select class="control compact-select" id="pageSizeSelect" aria-label="每页条数">
+            <div class="pager-left">
+              <select class="control compact-select page-size-select" id="pageSizeSelect" aria-label="每页条数">
                 <option value="10">10 条/页</option>
                 <option value="20" selected>20 条/页</option>
                 <option value="50">50 条/页</option>
+                <option value="100">100 条/页</option>
               </select>
+              <span id="recordSummary">共 0 条数据</span>
+            </div>
+            <div class="pager-actions">
+              <label class="page-jump" aria-label="跳转页码">
+                <input class="control" id="pageJumpInput" type="number" min="1" value="1" />
+                <span>/</span>
+                <span id="totalPageLabel">1</span>
+              </label>
+              <button class="pager-button" id="firstPageButton" type="button" title="首页" aria-label="首页">&laquo;</button>
+              <button class="pager-button" id="prevPageButton" type="button" title="上一页" aria-label="上一页">&lsaquo;</button>
+              <button class="pager-button" id="nextPageButton" type="button" title="下一页" aria-label="下一页">&rsaquo;</button>
+              <button class="pager-button" id="lastPageButton" type="button" title="末页" aria-label="末页">&raquo;</button>
             </div>
           </div>
         </section>
@@ -168,29 +178,34 @@
         <section class="panel detail-page" id="detailPage" aria-label="活动详情" hidden>
           <div class="detail-toolbar">
             <div class="detail-toolbar-left">
-              <button class="icon-button" id="backToListButton" type="button" title="关闭" aria-label="关闭">×</button>
-              <button class="icon-button" id="detailEditButton" type="button" title="编辑" aria-label="编辑">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 20h4.7L19.2 9.5a2.1 2.1 0 0 0 0-3L17.5 4.8a2.1 2.1 0 0 0-3 0L4 15.3V20Z"></path>
-                  <path d="m13.7 5.7 4.6 4.6"></path>
-                </svg>
-              </button>
-              <button class="icon-button" id="detailPrintButton" type="button" title="打印二维码" aria-label="打印二维码">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 8V4h10v4"></path>
-                  <path d="M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path>
-                  <path d="M7 14h10v6H7z"></path>
-                </svg>
-              </button>
-              <button class="icon-button danger-icon" id="detailDeleteButton" type="button" title="删除" aria-label="删除">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M3 6h18"></path>
-                  <path d="M8 6V4h8v2"></path>
-                  <path d="M6 6l1 15h10l1-15"></path>
-                  <path d="M10 11v6"></path>
-                  <path d="M14 11v6"></path>
-                </svg>
-              </button>
+              <button class="detail-close-button" id="backToListButton" type="button" title="关闭" aria-label="关闭">×</button>
+              <div class="detail-actions">
+                <button class="detail-action-button detail-edit-action" id="detailEditButton" type="button" title="编辑" aria-label="编辑">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 20h4.7L19.2 9.5a2.1 2.1 0 0 0 0-3L17.5 4.8a2.1 2.1 0 0 0-3 0L4 15.3V20Z"></path>
+                    <path d="m13.7 5.7 4.6 4.6"></path>
+                  </svg>
+                  <span>编辑</span>
+                </button>
+                <button class="detail-action-button" id="detailPrintButton" type="button" title="打印二维码" aria-label="打印二维码">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 8V4h10v4"></path>
+                    <path d="M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"></path>
+                    <path d="M7 14h10v6H7z"></path>
+                  </svg>
+                  <span>打印</span>
+                </button>
+                <button class="detail-action-button danger-icon" id="detailDeleteButton" type="button" title="删除" aria-label="删除">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6h18"></path>
+                    <path d="M8 6V4h8v2"></path>
+                    <path d="M6 6l1 15h10l1-15"></path>
+                    <path d="M10 11v6"></path>
+                    <path d="M14 11v6"></path>
+                  </svg>
+                  <span>删除</span>
+                </button>
+              </div>
             </div>
             <div class="detail-toolbar-right">
               <span id="detailPosition">- / -</span>
@@ -234,9 +249,19 @@
                 <span>问卷模版</span>
                 <div class="detail-value" id="detailTemplate">-</div>
               </div>
+              <div class="detail-field wide">
+                <span>报考方向预设</span>
+                <div class="detail-value direction-detail-value" id="detailDirectionPreset">-</div>
+              </div>
               <div class="detail-field qr-detail-field">
                 <span>问卷二维码</span>
-                <div class="detail-value" id="detailQr">未生成</div>
+                <div class="detail-value qr-detail-wrap">
+                  <div class="qr-preview" id="detailQr">未生成</div>
+                  <div class="qr-status-side">
+                    <span>二维码状态</span>
+                    <strong id="detailQrStatus">-</strong>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="detail-meta">
@@ -287,20 +312,19 @@
           <label for="activityType">活动类型</label>
           <select id="activityType" name="type">
             <option value="">请选择</option>
-            <option value="体验营">体验营</option>
-            <option value="直播">直播</option>
-            <option value="讲座">讲座</option>
-            <option value="走访">走访</option>
-            <option value="沙龙">沙龙</option>
           </select>
         </div>
         <div class="form-field required">
           <label for="startDate">活动开始日期</label>
-          <input class="detail-input activity-date-input" id="startDate" name="start" type="date" required />
+          <div class="activity-date-field">
+            <input class="detail-input activity-date-input" id="startDate" name="start" type="text" inputmode="none" autocomplete="off" placeholder="请选择日期" required />
+          </div>
         </div>
         <div class="form-field required">
           <label for="endDate">活动结束日期</label>
-          <input class="detail-input activity-date-input" id="endDate" name="end" type="date" required />
+          <div class="activity-date-field">
+            <input class="detail-input activity-date-input" id="endDate" name="end" type="text" inputmode="none" autocomplete="off" placeholder="请选择日期" required />
+          </div>
         </div>
         <div class="form-field required">
           <label for="department">活动所属部门</label>
@@ -317,7 +341,27 @@
           <select id="questionnaireTemplate" name="questionnaireTemplate" required>
             <option value="活动讲座模版">活动讲座模版</option>
             <option value="展架等宣传品通用模版">展架等宣传品通用模版</option>
+            <option value="MBA-EMBA报考咨询表(体验营用)">MBA-EMBA报考咨询表(体验营用)</option>
+            <option value="苏州-EMBA/MBA 体验日">苏州-EMBA/MBA 体验日</option>
+            <option value="合肥-EMBA/MBA 体验日">合肥-EMBA/MBA 体验日</option>
           </select>
+        </div>
+        <div class="form-field required wide direction-preset-field">
+          <label>问卷报考方向预设</label>
+          <div class="direction-preset-panel">
+            <div class="direction-preset-head">
+              <span>选择后会作为本活动问卷的可选报考方向</span>
+              <div class="direction-preset-actions">
+                <button class="button compact" id="selectAllDirectionsButton" type="button">全选</button>
+                <button class="button compact" id="clearDirectionsButton" type="button">清空</button>
+              </div>
+            </div>
+            <div class="direction-preset-groups" id="directionPresetGroups"></div>
+            <div class="direction-preset-summary">
+              <strong id="directionPresetCount">已选 0 项</strong>
+              <div id="directionPresetSummary"></div>
+            </div>
+          </div>
         </div>
         <div class="form-field wide" id="generatedQrField" hidden>
           <label for="generatedQr">问卷二维码</label>
@@ -334,6 +378,6 @@
       </div>
     </section>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=202606031735"></script>
   </body>
 </html>

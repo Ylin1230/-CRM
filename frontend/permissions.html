@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>权限管理</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell embedded-shell permission-shell">
+      <main class="permission-layout" aria-label="权限管理">
+        <section class="panel permission-group-panel" aria-label="业务模块">
+          <div class="permission-side-head">
+            <div>
+              <strong>权限管理</strong>
+              <span>按业务页面配置成员、数据范围、操作权限和字段权限</span>
+            </div>
+          </div>
+          <div class="permission-side-search">
+            <input id="moduleSearchInput" type="search" placeholder="搜索业务模块" />
+          </div>
+          <div class="permission-module-list" id="moduleList"></div>
+          <div class="permission-side-foot">
+            <button class="button compact" id="refreshButton" type="button">刷新</button>
+            <span id="groupCountText">共 0 组</span>
+          </div>
+        </section>
+
+        <section class="panel permission-main-panel" aria-label="权限规则配置">
+          <div class="permission-main-head">
+            <div>
+              <h1 id="activeGroupTitle">权限规则</h1>
+              <span id="activeGroupMeta">选择左侧业务模块后，配置对应页面的权限规则</span>
+            </div>
+            <div class="permission-head-actions">
+              <button class="button danger compact" id="deleteGroupButton" type="button" disabled>删除权限组</button>
+              <button class="button primary compact" id="saveGroupButton" type="button">保存基础信息</button>
+            </div>
+          </div>
+
+          <div class="permission-editor-scroll">
+            <section class="permission-rule-list-card">
+              <div class="permission-rule-list-head">
+                <div>
+                  <strong>权限组列表</strong>
+                  <span>点击权限组即可在下方编辑，权限会按成员范围自动生效。</span>
+                </div>
+                <div class="permission-list-actions">
+                  <input id="groupSearchInput" type="search" placeholder="搜索权限组" />
+                  <button class="button primary" id="newGroupButton" type="button">新增权限组</button>
+                </div>
+              </div>
+              <div class="permission-rule-list" id="groupList"></div>
+            </section>
+
+            <section class="permission-config-card">
+              <div class="permission-card-title">
+                <strong>基础信息</strong>
+                <span>权限名称建议写清楚“谁能管理哪些数据”。</span>
+              </div>
+              <form class="permission-basic-form" id="groupForm">
+                <input id="groupRecordId" type="hidden" />
+                <label class="form-field required">
+                  <span>名称</span>
+                  <input id="groupNameInput" type="text" placeholder="例如：招生部可管理本人提交的数据" required />
+                </label>
+                <label class="form-field required">
+                  <span>权限编号</span>
+                  <input id="groupCodeInput" type="text" placeholder="自动生成，可按需调整" required />
+                </label>
+                <label class="form-field">
+                  <span>状态</span>
+                  <select id="groupStatusInput">
+                    <option>启用</option>
+                    <option>停用</option>
+                  </select>
+                </label>
+              </form>
+            </section>
+
+            <section class="permission-config-card permission-tab-panel" id="membersPanel">
+              <div class="permission-card-title">
+                <strong>权限成员</strong>
+                <span>选择谁会获得这条权限规则。</span>
+              </div>
+              <div class="permission-inline-form">
+                <label>
+                  <span>成员范围</span>
+                  <select id="memberTypeInput">
+                    <option>成员</option>
+                    <option>部门</option>
+                    <option>全部成员</option>
+                  </select>
+                </label>
+                <label id="memberUserField">
+                  <span>选择成员</span>
+                  <select id="memberUserInput"></select>
+                </label>
+                <label id="memberDeptField" hidden>
+                  <span>选择部门</span>
+                  <select id="memberDeptInput"></select>
+                </label>
+                <label>
+                  <span>授权状态</span>
+                  <select id="memberStatusInput">
+                    <option>启用</option>
+                    <option>停用</option>
+                  </select>
+                </label>
+                <button class="button primary" id="addMemberButton" type="button">添加授权</button>
+              </div>
+              <div class="permission-member-list" id="memberRows"></div>
+              <div class="empty-state" id="memberEmptyState" hidden>暂无授权对象</div>
+            </section>
+
+            <section class="permission-config-card permission-tab-panel" id="modulesPanel">
+              <div class="permission-card-title">
+                <strong>数据范围与操作权限</strong>
+                <span>按当前业务模块配置可见数据和可执行动作。</span>
+              </div>
+              <div class="permission-module-toolbar">
+                <label>
+                  <span>业务模块</span>
+                  <select id="permissionModuleInput"></select>
+                </label>
+                <button class="button primary" id="saveModulesButton" type="button">保存模块权限</button>
+              </div>
+              <div class="permission-rule-stack" id="moduleRows"></div>
+            </section>
+
+            <section class="permission-config-card permission-tab-panel" id="fieldsPanel">
+              <div class="permission-card-title">
+                <strong>字段权限</strong>
+                <span>只显示业务字段名称，按需要设置可见或可编辑。</span>
+              </div>
+              <div class="permission-field-toolbar">
+                <label>
+                  <span>字段所属模块</span>
+                  <select id="fieldModuleInput"></select>
+                </label>
+                <button class="button primary" id="saveFieldsButton" type="button">保存字段权限</button>
+              </div>
+              <div class="permission-field-list" id="fieldRows"></div>
+            </section>
+
+            <section class="permission-config-card permission-tab-panel" id="previewPanel">
+              <div class="permission-card-title">
+                <strong>权限预览</strong>
+                <span>按当前百数云外部页面 URL 参数解析登录人，检查最终合并结果。</span>
+              </div>
+              <div class="permission-preview-actions">
+                <button class="button primary" id="loadPreviewButton" type="button">刷新当前登录人权限</button>
+              </div>
+              <div class="permission-preview" id="previewBox">
+                <div class="empty-state">尚未加载权限预览</div>
+              </div>
+            </section>
+          </div>
+
+          <div class="permission-statusbar" id="statusText">准备就绪</div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./permissions.js"></script>
+  </body>
+</html>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>活动问卷调查</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=202606031125" />
   </head>
   <body>
     <div class="app-shell survey-shell embedded-shell">
@@ -22,23 +22,23 @@
               <input id="personName" name="personName" type="text" required />
             </div>
             <div class="form-field required">
-              <label for="phone">手机号</label>
+              <label for="phone" id="phoneLabel">手机号</label>
               <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="11" autocomplete="tel" required />
               <div class="field-hint" id="phoneHint" aria-live="polite"></div>
             </div>
-            <div class="form-field">
+            <div class="form-field" id="emailField">
               <label for="email">邮箱</label>
               <input id="email" name="email" type="email" />
             </div>
-            <div class="form-field required">
-              <label for="company">企业名称</label>
+            <div class="form-field required" id="companyField">
+              <label for="company" id="companyLabel">企业名称</label>
               <input id="company" name="company" type="text" required />
             </div>
-            <div class="form-field required">
-              <label for="position">职位</label>
+            <div class="form-field required" id="positionField">
+              <label for="position" id="positionLabel">职位</label>
               <input id="position" name="position" type="text" required />
             </div>
-            <div class="form-field">
+            <div class="form-field" id="genderField">
               <label>性别</label>
               <div class="radio-pill-group">
                 <label class="radio-pill">
@@ -51,8 +51,8 @@
                 </label>
               </div>
             </div>
-            <div class="form-field required">
-              <label for="education">最高学历</label>
+            <div class="form-field required" id="educationField">
+              <label for="education" id="educationLabel">最高学历</label>
               <select id="education" name="education" required>
                 <option value="">请选择</option>
                 <option value="大专">大专</option>
@@ -62,15 +62,15 @@
               </select>
             </div>
             <div class="form-field required" id="managerYearsField">
-              <label for="managerYears">担任高层管理工作年限</label>
+              <label for="managerYears" id="managerYearsLabel">担任高层管理工作年限</label>
               <input id="managerYears" name="managerYears" type="number" min="0" required />
             </div>
-            <div class="form-field">
+            <div class="form-field" id="wechatField">
               <label for="wechat">微信号</label>
               <input id="wechat" name="wechat" type="text" />
             </div>
             <div class="form-field required" id="idCardField">
-              <label for="idCard">身份证号（仅用于活动入校使用）</label>
+              <label for="idCard" id="idCardLabel">身份证号（仅用于活动入校使用）</label>
               <input id="idCard" name="idCard" type="text" inputmode="text" maxlength="18" required />
               <div class="field-hint" id="idCardHint" aria-live="polite"></div>
             </div>
@@ -86,7 +86,7 @@
                 <option value="其他">其他</option>
               </select>
             </div>
-            <div class="form-field required">
+            <div class="form-field required" id="referrerField">
               <label for="referrer">推荐人</label>
               <input id="referrer" name="referrer" type="text" placeholder="请填写推荐人，没有推荐人填“无”即可" required />
             </div>
@@ -103,24 +103,207 @@
                 </label>
               </div>
             </div>
-            <div class="form-field required wide project-type-field" id="projectTypeField" hidden>
-              <label>项目类型</label>
-              <div class="plain-radio-group">
-                <label>
-                  <input name="projectType" type="radio" value="学历项目" />
-                  <span>学历项目</span>
-                </label>
-                <label>
-                  <input name="projectType" type="radio" value="非学历项目" />
-                  <span>非学历项目</span>
-                </label>
-              </div>
+            <div class="form-field required wide" id="projectTypeField" hidden>
+              <label for="projectType">项目类型</label>
+              <select id="projectType" name="projectType"></select>
             </div>
             <div class="form-field required wide" id="directionField" hidden>
               <label for="direction" id="directionLabel">报考方向</label>
               <select id="direction" name="direction"></select>
             </div>
-            <div class="form-field wide">
+            <div class="form-field required wide experience-field" id="experienceDirectionField" hidden>
+              <label>申请项目（均为非全日制）</label>
+              <div class="direction-option-list experience-option-list">
+                <label class="direction-option">
+                  <input name="experienceDirection" type="checkbox" value="EMBA 科创方向" />
+                  <span class="direction-check"></span>
+                  <span>EMBA 科创方向</span>
+                </label>
+                <label class="direction-option">
+                  <input name="experienceDirection" type="checkbox" value="EMBA 人工智能方向" />
+                  <span class="direction-check"></span>
+                  <span>EMBA 人工智能方向</span>
+                </label>
+                <label class="direction-option">
+                  <input name="experienceDirection" type="checkbox" value="MBA 综合管理方向" />
+                  <span class="direction-check"></span>
+                  <span>MBA 综合管理方向</span>
+                </label>
+                <label class="direction-option">
+                  <input name="experienceDirection" type="checkbox" value="MBA 人工智能商业应用方向" />
+                  <span class="direction-check"></span>
+                  <span>MBA 人工智能商业应用方向</span>
+                </label>
+                <label class="direction-option">
+                  <input name="experienceDirection" type="checkbox" value="MBA 科技创业方向" />
+                  <span class="direction-check"></span>
+                  <span>MBA 科技创业方向</span>
+                </label>
+                <label class="direction-option">
+                  <input name="experienceDirection" type="checkbox" value="MBA 科技金融方向" />
+                  <span class="direction-check"></span>
+                  <span>MBA 科技金融方向</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field required experience-field" id="highestDegreeField" hidden>
+              <label for="highestDegree">最高学位</label>
+              <input id="highestDegree" name="highestDegree" type="text" />
+            </div>
+            <div class="form-field required experience-field" id="degreeTimeField" hidden>
+              <label for="degreeTime">最后学历、学位获得时间</label>
+              <input id="degreeTime" name="degreeTime" type="date" />
+            </div>
+            <div class="form-field required wide experience-field" id="classLocationField" hidden>
+              <label>申请上课地点</label>
+              <div class="plain-radio-group inline-radio-group">
+                <label>
+                  <input name="classLocation" type="radio" value="合肥" />
+                  <span>合肥</span>
+                </label>
+                <label>
+                  <input name="classLocation" type="radio" value="上海" />
+                  <span>上海</span>
+                </label>
+                <label>
+                  <input name="classLocation" type="radio" value="苏州" />
+                  <span>苏州</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field required wide experience-field" id="originAddressField" hidden>
+              <label for="originAddressInput">生源地</label>
+              <div class="address-cascader" id="originAddressPicker">
+                <input id="originAddressInput" name="originAddressDisplay" type="text" placeholder="请选择省市" readonly required autocomplete="off" />
+                <input id="originProvince" name="originProvince" type="hidden" />
+                <input id="originCity" name="originCity" type="hidden" />
+                <div class="address-cascader-panel" id="originAddressPanel" hidden>
+                  <div class="address-cascader-search">
+                    <span aria-hidden="true"></span>
+                    <input id="originAddressSearch" type="search" placeholder="搜索数据" autocomplete="off" />
+                  </div>
+                  <div class="address-cascader-columns">
+                    <div class="address-cascader-list" id="originProvinceList" role="listbox" aria-label="省份"></div>
+                    <div class="address-cascader-list" id="originCityList" role="listbox" aria-label="城市"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-field required experience-field" id="workYearsField" hidden>
+              <label for="workYears">工作年限</label>
+              <input id="workYears" name="workYears" type="number" min="0" />
+            </div>
+            <div class="form-field required experience-field" id="companyNatureField" hidden>
+              <label for="companyNature">公司性质</label>
+              <input id="companyNature" name="companyNature" type="text" />
+            </div>
+            <div class="form-field required experience-field" id="industryField" hidden>
+              <label for="industry">所属行业</label>
+              <input id="industry" name="industry" type="text" />
+            </div>
+            <div class="form-field required experience-field" id="companyAssetsField" hidden>
+              <label for="companyAssets">公司资产</label>
+              <input id="companyAssets" name="companyAssets" type="text" />
+            </div>
+            <div class="form-field required experience-field" id="companyScaleField" hidden>
+              <label for="companyScale">公司规模（去年营业额，万元）</label>
+              <input id="companyScale" name="companyScale" type="number" min="0" />
+            </div>
+            <div class="form-field required experience-field" id="employeeCountField" hidden>
+              <label for="employeeCount">员工数量</label>
+              <input id="employeeCount" name="employeeCount" type="number" min="0" />
+            </div>
+            <div class="form-field required experience-field" id="listedField" hidden>
+              <label>是否在主板上市</label>
+              <div class="plain-radio-group inline-radio-group">
+                <label>
+                  <input name="listed" type="radio" value="是" />
+                  <span>是</span>
+                </label>
+                <label>
+                  <input name="listed" type="radio" value="否" />
+                  <span>否</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field experience-field" id="stockCodeField" hidden>
+              <label for="stockCode">股票代码</label>
+              <input id="stockCode" name="stockCode" type="text" placeholder="如无则不填" />
+            </div>
+            <div class="form-field required experience-field" id="jobTitleField" hidden>
+              <label for="jobTitle" id="jobTitleLabel">职务名称</label>
+              <input id="jobTitle" name="jobTitle" type="text" />
+            </div>
+            <div class="form-field required experience-field" id="responsibilityField" hidden>
+              <label for="responsibility">工作职责</label>
+              <input id="responsibility" name="responsibility" type="text" />
+            </div>
+            <div class="form-field required experience-field" id="subordinateCountField" hidden>
+              <label for="subordinateCount">下属人数机构和人数</label>
+              <input id="subordinateCount" name="subordinateCount" type="text" />
+            </div>
+            <div class="form-field required wide experience-field" id="managementIssueField" hidden>
+              <label for="managementIssue">目前遇到的管理问题以及未来规划（150字以内）</label>
+              <textarea id="managementIssue" name="managementIssue" rows="4" maxlength="150"></textarea>
+            </div>
+            <div class="form-field required wide experience-field" id="applicationGoalField" hidden>
+              <label for="applicationGoal">申请EMBA/MBA的原因与目标（100字以内）</label>
+              <textarea id="applicationGoal" name="applicationGoal" rows="4" maxlength="100"></textarea>
+            </div>
+            <div class="form-field wide experience-field" id="supplementField" hidden>
+              <label for="supplement">其他补充说明（100字以内）</label>
+              <textarea id="supplement" name="supplement" rows="4" maxlength="100"></textarea>
+            </div>
+            <div class="form-field wide experience-field" id="declarationField" hidden>
+              <label>本人声明</label>
+              <div class="survey-declaration">我已充分了解并接受中国科大EMBA/MBA体验营日程安排，保证所提交的所有申请资料均真实可靠，并愿对因虚假信息导致的申请失败或资格取消承担全部责任。我同意中国科大专业学位中心保留所有申请资料。</div>
+            </div>
+            <div class="form-field required wide experience-day-field" id="meetupField" hidden>
+              <label>是否参加科商见面会</label>
+              <div class="plain-radio-group inline-radio-group">
+                <label>
+                  <input name="meetup" type="radio" value="是" />
+                  <span>是</span>
+                </label>
+                <label>
+                  <input name="meetup" type="radio" value="否" />
+                  <span>否</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field required wide experience-day-field" id="suzhouVisitField" hidden>
+              <label>是否参观苏高院展厅、实验室</label>
+              <div class="plain-radio-group inline-radio-group">
+                <label>
+                  <input name="visitLab" type="radio" value="是" />
+                  <span>是</span>
+                </label>
+                <label>
+                  <input name="visitLab" type="radio" value="否" />
+                  <span>否</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field required wide experience-day-field" id="hefeiVisitField" hidden>
+              <label>是否参观校史馆</label>
+              <div class="plain-radio-group inline-radio-group">
+                <label>
+                  <input name="visitHistory" type="radio" value="是" />
+                  <span>是</span>
+                </label>
+                <label>
+                  <input name="visitHistory" type="radio" value="否" />
+                  <span>否</span>
+                </label>
+              </div>
+            </div>
+            <div class="form-field wide experience-day-field" id="applicationDownloadField" hidden>
+              <label>申请表下载</label>
+              <a class="survey-download-link" href="./assets/2027-mba-emba-experience-application.docx" download="2027 MBA-EMBA 体验营及见面会申请表.docx">
+                下载《2027 MBA/EMBA 体验营及见面会申请表》
+              </a>
+            </div>
+            <div class="form-field wide" id="concernField">
               <label for="concern">您最关心的企业经营管理问题是什么？</label>
               <textarea id="concern" name="concern" rows="4"></textarea>
             </div>
@@ -149,6 +332,6 @@
       </section>
     </div>
 
-    <script src="./questionnaire.js"></script>
+    <script src="./questionnaire.js?v=202606031720"></script>
   </body>
 </html>

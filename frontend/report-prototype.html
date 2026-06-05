@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>招生数据看板原型</title>
+    <link rel="stylesheet" href="./report-prototype.css" />
+  </head>
+  <body>
+    <div class="prototype-shell">
+      <aside class="side-nav" aria-label="科大CRM导航">
+        <div class="brand-row">
+          <span class="brand-mark" aria-hidden="true">
+            <i></i><i></i><i></i><i></i>
+          </span>
+          <strong>科大CRM</strong>
+          <button class="nav-icon" type="button" aria-label="收起导航">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16M4 12h12M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+
+        <label class="nav-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m16 16 4 4"></path>
+          </svg>
+          <input type="search" placeholder="请输入表单/报表名称" />
+        </label>
+
+        <nav class="menu-list">
+          <a href="#"><span class="menu-dot file"></span>活动管理</a>
+          <a href="#"><span class="menu-dot user"></span>活动学员信息管理</a>
+          <a href="#"><span class="menu-dot user"></span>潜在考生信息管理</a>
+          <a href="#"><span class="menu-dot user"></span>达线学员信息管理</a>
+          <a href="#"><span class="menu-dot user"></span>归档学员信息管理</a>
+          <a href="#"><span class="menu-dot file"></span>跟进记录</a>
+          <a href="#"><span class="menu-dot chart"></span>招生管理驾驶舱</a>
+          <a href="#"><span class="menu-dot chart"></span>个人招生驾驶舱</a>
+          <a class="active" href="#"><span class="menu-dot chart"></span>达线学员统计看板</a>
+          <a href="#"><span class="menu-dot chart"></span>引流效果分析</a>
+          <a class="folder" href="#"><span class="menu-dot folder"></span>底表</a>
+        </nav>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div class="page-title">
+            <span>报表原型</span>
+            <h1 data-report-title>招生管理驾驶舱</h1>
+          </div>
+          <div class="top-actions">
+            <button class="icon-text-button" type="button" data-action="refresh">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+                <path d="M21 3v6h-6"></path>
+              </svg>
+              刷新
+            </button>
+            <button class="icon-text-button" type="button" data-action="presentation">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5h16v11H4z"></path>
+                <path d="M12 16v4"></path>
+                <path d="M8 20h8"></path>
+              </svg>
+              演示模式
+            </button>
+            <button class="icon-button" type="button" data-action="fullscreen" aria-label="全屏">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="board-tabs" aria-label="报表视图">
+          <button class="active" type="button" data-view="admission">招生管理驾驶舱</button>
+          <button type="button" data-view="qualified">达线学员统计看板</button>
+          <button type="button" data-view="traffic">引流效果分析</button>
+          <button type="button" data-view="activity">活动分析报表</button>
+        </section>
+
+        <section class="filter-band" aria-label="筛选条件" data-filter-band></section>
+
+        <section class="kpi-grid" aria-label="关键指标" data-kpi-grid></section>
+
+        <section class="dashboard-grid" data-dashboard-grid></section>
+      </main>
+    </div>
+
+    <script src="./report-prototype.js"></script>
+  </body>
+</html>
