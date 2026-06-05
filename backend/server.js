@@ -95,6 +95,7 @@ const SURVEY_FIELD = {
   meetup: "_widget_1780452817169",
   visitLab: "_widget_1780452817190",
   visitHistory: "_widget_1780452817237",
+  visitQuantum: "_widget_1780643491263",
   sourceCode: "_widget_1778461489795"
 };
 
@@ -103,7 +104,8 @@ const QUESTIONNAIRE_TEMPLATE = {
   promo: "展架等宣传品通用模版",
   experience: "MBA-EMBA报考咨询表(体验营用)",
   suzhouExperienceDay: "苏州-EMBA/MBA 体验日",
-  hefeiExperienceDay: "合肥-EMBA/MBA 体验日"
+  hefeiExperienceDay: "合肥-EMBA/MBA 体验日",
+  shanghaiExperienceDay: "上海-EMBA/MBA体验日"
 };
 
 const STUDENT_FIELD = {
@@ -2900,6 +2902,7 @@ function isExperienceDayTemplate(value) {
   const text = String(value || "");
   return text === QUESTIONNAIRE_TEMPLATE.suzhouExperienceDay ||
     text === QUESTIONNAIRE_TEMPLATE.hefeiExperienceDay ||
+    text === QUESTIONNAIRE_TEMPLATE.shanghaiExperienceDay ||
     text.includes("体验日");
 }
 

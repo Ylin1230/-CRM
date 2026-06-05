@@ -49,7 +49,8 @@ const QUESTIONNAIRE_TEMPLATE = {
   promo: "展架等宣传品通用模版",
   experience: "MBA-EMBA报考咨询表(体验营用)",
   suzhouExperienceDay: "苏州-EMBA/MBA 体验日",
-  hefeiExperienceDay: "合肥-EMBA/MBA 体验日"
+  hefeiExperienceDay: "合肥-EMBA/MBA 体验日",
+  shanghaiExperienceDay: "上海-EMBA/MBA体验日"
 };
 
 const QUESTIONNAIRE_TEMPLATE_OPTIONS = Object.values(QUESTIONNAIRE_TEMPLATE);

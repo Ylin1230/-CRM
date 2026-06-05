@@ -38,6 +38,7 @@ const SURVEY_FIELD = {
   meetup: "_widget_1780452817169",
   visitLab: "_widget_1780452817190",
   visitHistory: "_widget_1780452817237",
+  visitQuantum: "_widget_1780643491263",
   sourceCode: "_widget_1778461489795"
 };
 
@@ -65,7 +66,8 @@ const QUESTIONNAIRE_TEMPLATE = {
   promo: "展架等宣传品通用模版",
   experience: "MBA-EMBA报考咨询表(体验营用)",
   suzhouExperienceDay: "苏州-EMBA/MBA 体验日",
-  hefeiExperienceDay: "合肥-EMBA/MBA 体验日"
+  hefeiExperienceDay: "合肥-EMBA/MBA 体验日",
+  shanghaiExperienceDay: "上海-EMBA/MBA体验日"
 };
 
 const EXPERIENCE_DECLARATION =
@@ -185,10 +187,12 @@ const surveyDom = {
   experienceDayFields: document.querySelectorAll(".experience-day-field"),
   suzhouVisitField: document.querySelector("#suzhouVisitField"),
   hefeiVisitField: document.querySelector("#hefeiVisitField"),
+  shanghaiVisitField: document.querySelector("#shanghaiVisitField"),
   applicationDownloadField: document.querySelector("#applicationDownloadField"),
   meetupInputs: document.querySelectorAll('input[name="meetup"]'),
   visitLabInputs: document.querySelectorAll('input[name="visitLab"]'),
   visitHistoryInputs: document.querySelectorAll('input[name="visitHistory"]'),
+  visitQuantumInputs: document.querySelectorAll('input[name="visitQuantum"]'),
   submitButton: document.querySelector("#submitSurveyButton"),
   confirmMask: document.querySelector("#surveyConfirm"),
   confirmCancelButton: document.querySelector("#cancelSurveyConfirmButton"),
@@ -377,7 +381,8 @@ async function submitSurvey(event) {
       [SURVEY_FIELD.jobTitle]: jobTitle,
       [SURVEY_FIELD.meetup]: formData.get("meetup") || "",
       [SURVEY_FIELD.visitLab]: formData.get("visitLab") || "",
-      [SURVEY_FIELD.visitHistory]: formData.get("visitHistory") || ""
+      [SURVEY_FIELD.visitHistory]: formData.get("visitHistory") || "",
+      [SURVEY_FIELD.visitQuantum]: formData.get("visitQuantum") || ""
     });
   }
   if (/^\d+$/.test(wechat)) {
@@ -487,13 +492,14 @@ function applyQuestionnaireTemplate() {
   const experience = isExperienceTemplate();
   const experienceDay = isExperienceDayTemplate();
   const suzhouExperienceDay = isSuzhouExperienceDayTemplate();
-  const namedExperienceDay = suzhouExperienceDay || isHefeiExperienceDayTemplate();
+  const shanghaiExperienceDay = isShanghaiExperienceDayTemplate();
+  const namedExperienceDay = suzhouExperienceDay || isHefeiExperienceDayTemplate() || shanghaiExperienceDay;
   const showReferrer = namedExperienceDay || (!experience && !experienceDay);
   const standardLecture = !promo && !experience && !experienceDay;
 
   setFieldLabel(
     surveyDom.phoneLabel,
-    experienceDay ? (suzhouExperienceDay ? "电话" : "电话（请准确填写电话号码以接收入校二维码）") : "手机号"
+    experienceDay ? (suzhouExperienceDay || shanghaiExperienceDay ? "电话" : "电话（请准确填写电话号码以接收入校二维码）") : "手机号"
   );
   setFieldLabel(surveyDom.companyLabel, experience || experienceDay ? "单位" : "企业名称");
   setFieldLabel(surveyDom.educationLabel, experience ? "最后学历" : "最高学历");
@@ -507,7 +513,7 @@ function applyQuestionnaireTemplate() {
   toggleConditionalField(surveyDom.educationField, [surveyDom.education], !experienceDay, true);
   toggleConditionalField(surveyDom.wechatField, [document.querySelector("#wechat")], !experience && !experienceDay, false);
   toggleConditionalField(surveyDom.managerYearsField, [surveyDom.managerYears], !promo && !experienceDay, true);
-  toggleConditionalField(surveyDom.idCardField, [surveyDom.idCard], !promo && !suzhouExperienceDay, true);
+  toggleConditionalField(surveyDom.idCardField, [surveyDom.idCard], !promo && !suzhouExperienceDay && !shanghaiExperienceDay, true);
   toggleConditionalField(surveyDom.signupSourceField, [surveyDom.signupSource], standardLecture, true);
   toggleConditionalField(surveyDom.referrerField, [surveyDom.referrer], showReferrer, true);
   toggleConditionalField(surveyDom.intentionField, Array.from(surveyDom.intentionInputs), standardLecture, true);
@@ -594,6 +600,7 @@ function toggleExperienceFields(active) {
 function toggleExperienceDayFields(active) {
   const suzhou = active && isSuzhouExperienceDayTemplate();
   const hefei = active && isHefeiExperienceDayTemplate();
+  const shanghai = active && isShanghaiExperienceDayTemplate();
   surveyDom.experienceDayFields.forEach((field) => {
     if (field === surveyDom.suzhouVisitField) {
       toggleFieldWithControls(field, suzhou);
@@ -601,6 +608,10 @@ function toggleExperienceDayFields(active) {
     }
     if (field === surveyDom.hefeiVisitField) {
       toggleFieldWithControls(field, hefei);
+      return;
+    }
+    if (field === surveyDom.shanghaiVisitField) {
+      toggleFieldWithControls(field, shanghai);
       return;
     }
     toggleFieldWithControls(field, active);
@@ -1251,6 +1262,7 @@ function isExperienceTemplate() {
 function isExperienceDayTemplate() {
   return isSuzhouExperienceDayTemplate() ||
     isHefeiExperienceDayTemplate() ||
+    isShanghaiExperienceDayTemplate() ||
     currentQuestionnaireTemplate.includes("体验日");
 }
 
@@ -1262,6 +1274,11 @@ function isSuzhouExperienceDayTemplate() {
 function isHefeiExperienceDayTemplate() {
   return currentQuestionnaireTemplate === QUESTIONNAIRE_TEMPLATE.hefeiExperienceDay ||
     (currentQuestionnaireTemplate.includes("合肥") && currentQuestionnaireTemplate.includes("体验日"));
+}
+
+function isShanghaiExperienceDayTemplate() {
+  return currentQuestionnaireTemplate === QUESTIONNAIRE_TEMPLATE.shanghaiExperienceDay ||
+    (currentQuestionnaireTemplate.includes("上海") && currentQuestionnaireTemplate.includes("体验日"));
 }
 
 function selectedRadioValue(name) {
