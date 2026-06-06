@@ -1729,11 +1729,17 @@ button {
 }
 
 .select-trigger::after {
-  content: "⌄";
+  content: "";
   position: absolute;
-  top: 6px;
-  right: 10px;
-  color: var(--muted);
+  top: 50%;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  color: #7a8798;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
 }
 
 .select-trigger.placeholder {
@@ -1979,6 +1985,104 @@ button {
 
 .direction-preset-field {
   grid-column: 1 / -1;
+}
+
+.questionnaire-field-rules-field {
+  grid-column: 1 / -1;
+}
+
+.questionnaire-field-rules {
+  min-height: 62px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 10px;
+  border: 1px solid #dfe5ef;
+  border-radius: 6px;
+  background: #fbfcff;
+}
+
+.questionnaire-field-rule {
+  min-width: 0;
+  margin-bottom: 0;
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: #2d3748;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-field .questionnaire-field-rule {
+  margin-bottom: 0;
+  display: grid;
+}
+
+.questionnaire-field-rule span {
+  color: #536176;
+}
+
+.questionnaire-field-rule select {
+  height: 32px;
+}
+
+.field-status-segment {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.field-status-segment button {
+  height: 32px;
+  min-width: 0;
+  padding: 0 8px;
+  color: #536176;
+  font-size: 12px;
+  line-height: 30px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #d7dfeb;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.field-status-segment button:hover {
+  border-color: #adc7ef;
+  background: #f6f9ff;
+}
+
+.field-status-segment button.active {
+  color: var(--primary);
+  font-weight: 600;
+  background: #edf4ff;
+  border-color: #8db7f4;
+}
+
+.field-status-segment button:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(44, 121, 234, 0.12);
+}
+
+.detail-field-status-segment {
+  width: min(260px, 100%);
+}
+
+.field-status-value {
+  min-height: 34px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+}
+
+.detail-field-full {
+  grid-column: 1 / -1;
+}
+
+.detail-page.editing .questionnaire-rules-detail-field .detail-value {
+  min-height: 34px;
 }
 
 .direction-preset-panel {
@@ -4508,7 +4612,7 @@ button {
   }
 
   .survey-form .survey-select-picker .select-trigger::after {
-    top: 9px;
+    top: 50%;
   }
 
   .survey-form .survey-select-picker .select-menu {

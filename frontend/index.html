@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>活动管理</title>
-    <link rel="stylesheet" href="./styles.css?v=202606051455" />
+    <link rel="stylesheet" href="./styles.css?v=202606061030" />
   </head>
   <body class="activity-page-body">
     <div class="app-shell embedded-shell">
@@ -249,7 +249,15 @@
                 <span>问卷模版</span>
                 <div class="detail-value" id="detailTemplate">-</div>
               </div>
-              <div class="detail-field wide">
+              <div class="detail-field questionnaire-rules-detail-field">
+                <span>手机号状态</span>
+                <div class="detail-value" id="detailPhoneFieldStatus">-</div>
+              </div>
+              <div class="detail-field questionnaire-rules-detail-field">
+                <span>身份证号状态</span>
+                <div class="detail-value" id="detailIdCardFieldStatus">-</div>
+              </div>
+              <div class="detail-field wide detail-field-full direction-detail-field">
                 <span>报考方向预设</span>
                 <div class="detail-value direction-detail-value" id="detailDirectionPreset">-</div>
               </div>
@@ -347,6 +355,29 @@
             <option value="上海-EMBA/MBA体验日">上海-EMBA/MBA体验日</option>
           </select>
         </div>
+        <div class="form-field wide questionnaire-field-rules-field">
+          <label>问卷填写规则</label>
+          <div class="questionnaire-field-rules">
+            <div class="questionnaire-field-rule">
+              <span>手机号</span>
+              <input id="phoneFieldStatus" name="phoneFieldStatus" type="hidden" value="显示（必填）" />
+              <div class="field-status-segment" data-field-status-control="phoneFieldStatus" role="group" aria-label="手机号填写规则">
+                <button type="button" data-field-status-value="隐藏">隐藏</button>
+                <button type="button" data-field-status-value="显示（选填）">选填</button>
+                <button type="button" data-field-status-value="显示（必填）">必填</button>
+              </div>
+            </div>
+            <div class="questionnaire-field-rule">
+              <span>身份证号</span>
+              <input id="idCardFieldStatus" name="idCardFieldStatus" type="hidden" value="显示（必填）" />
+              <div class="field-status-segment" data-field-status-control="idCardFieldStatus" role="group" aria-label="身份证号填写规则">
+                <button type="button" data-field-status-value="隐藏">隐藏</button>
+                <button type="button" data-field-status-value="显示（选填）">选填</button>
+                <button type="button" data-field-status-value="显示（必填）">必填</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="form-field required wide direction-preset-field">
           <label>问卷报考方向预设</label>
           <div class="direction-preset-panel">
@@ -379,6 +410,6 @@
       </div>
     </section>
 
-    <script src="./app.js?v=202606051455"></script>
+    <script src="./app.js?v=202606061030"></script>
   </body>
 </html>

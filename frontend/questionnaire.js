@@ -70,6 +70,14 @@ const QUESTIONNAIRE_TEMPLATE = {
   shanghaiExperienceDay: "上海-EMBA/MBA体验日"
 };
 
+const QUESTIONNAIRE_FIELD_STATUS = {
+  hidden: "隐藏",
+  optional: "显示（选填）",
+  required: "显示（必填）"
+};
+
+const QUESTIONNAIRE_FIELD_STATUS_OPTIONS = Object.values(QUESTIONNAIRE_FIELD_STATUS);
+
 const EXPERIENCE_DECLARATION =
   "我已充分了解并接受中国科大EMBA/MBA体验营日程安排，保证所提交的所有申请资料均真实可靠，并愿对因虚假信息导致的申请失败或资格取消承担全部责任。我同意中国科大专业学位中心保留所有申请资料。";
 
@@ -123,6 +131,7 @@ const surveyDom = {
   sourceCode: document.querySelector("#sourceCode"),
   questionnaireTemplate: document.querySelector("#questionnaireTemplate"),
   emailField: document.querySelector("#emailField"),
+  phoneField: document.querySelector("#phoneField"),
   phoneLabel: document.querySelector("#phoneLabel"),
   companyField: document.querySelector("#companyField"),
   companyLabel: document.querySelector("#companyLabel"),
@@ -213,6 +222,8 @@ let surveyApiReady = false;
 let submitConfirmResolve = null;
 const surveySelectPickers = new Map();
 let currentQuestionnaireTemplate = QUESTIONNAIRE_TEMPLATE.lecture;
+let currentPhoneFieldStatus = "";
+let currentIdCardFieldStatus = "";
 let currentDirectionOptions = [];
 let currentDirectionItems = [];
 let selectRepositionFrame = 0;
@@ -257,6 +268,8 @@ async function initSurvey() {
         return;
       }
       currentQuestionnaireTemplate = activity.template || currentQuestionnaireTemplate;
+      currentPhoneFieldStatus = activity.phoneFieldStatus || "";
+      currentIdCardFieldStatus = activity.idCardFieldStatus || "";
       if (Array.isArray(activity.directionPresetItems) && activity.directionPresetItems.length) {
         currentDirectionItems = normalizeDirectionItems(activity.directionPresetItems);
         currentDirectionOptions = currentDirectionItems.map((item) => item.name);
@@ -496,24 +509,23 @@ function applyQuestionnaireTemplate() {
   const namedExperienceDay = suzhouExperienceDay || isHefeiExperienceDayTemplate() || shanghaiExperienceDay;
   const showReferrer = namedExperienceDay || (!experience && !experienceDay);
   const standardLecture = !promo && !experience && !experienceDay;
+  const fieldStatuses = currentQuestionnaireFieldStatuses();
 
-  setFieldLabel(
-    surveyDom.phoneLabel,
-    experienceDay ? (suzhouExperienceDay || shanghaiExperienceDay ? "电话" : "电话（请准确填写电话号码以接收入校二维码）") : "手机号"
-  );
+  setFieldLabel(surveyDom.phoneLabel, questionnairePhoneLabel(experienceDay, suzhouExperienceDay, shanghaiExperienceDay));
   setFieldLabel(surveyDom.companyLabel, experience || experienceDay ? "单位" : "企业名称");
   setFieldLabel(surveyDom.educationLabel, experience ? "最后学历" : "最高学历");
   setFieldLabel(surveyDom.managerYearsLabel, experience ? "管理工作年限" : "担任高层管理工作年限");
-  setFieldLabel(surveyDom.idCardLabel, experienceDay ? "身份证号（学校封闭管理，身份证号码仅用于入校报名）" : (experience ? "身份证号" : "身份证号（仅用于活动入校使用）"));
+  setFieldLabel(surveyDom.idCardLabel, questionnaireIdCardLabel(experienceDay, experience));
   setFieldLabel(surveyDom.jobTitleLabel, experienceDay ? "职务" : "职务名称");
 
+  toggleQuestionnaireFieldByStatus(surveyDom.phoneField, [surveyDom.phone], fieldStatuses.phone);
   toggleConditionalField(surveyDom.emailField, [document.querySelector("#email")], !experience && !experienceDay, false);
   toggleConditionalField(surveyDom.positionField, [surveyDom.position], !experience && !experienceDay, true);
   toggleConditionalField(surveyDom.genderField, Array.from(surveyDom.form.querySelectorAll('input[name="gender"]')), !experience && !experienceDay, false);
   toggleConditionalField(surveyDom.educationField, [surveyDom.education], !experienceDay, true);
   toggleConditionalField(surveyDom.wechatField, [document.querySelector("#wechat")], !experience && !experienceDay, false);
   toggleConditionalField(surveyDom.managerYearsField, [surveyDom.managerYears], !promo && !experienceDay, true);
-  toggleConditionalField(surveyDom.idCardField, [surveyDom.idCard], !promo && !suzhouExperienceDay && !shanghaiExperienceDay, true);
+  toggleQuestionnaireFieldByStatus(surveyDom.idCardField, [surveyDom.idCard], fieldStatuses.idCard);
   toggleConditionalField(surveyDom.signupSourceField, [surveyDom.signupSource], standardLecture, true);
   toggleConditionalField(surveyDom.referrerField, [surveyDom.referrer], showReferrer, true);
   toggleConditionalField(surveyDom.intentionField, Array.from(surveyDom.intentionInputs), standardLecture, true);
@@ -530,6 +542,30 @@ function applyQuestionnaireTemplate() {
   if (surveyDom.directionLabel) {
     surveyDom.directionLabel.textContent = promo || experienceDay ? "意向的项目" : "报考方向";
   }
+}
+
+function questionnairePhoneLabel(experienceDay, suzhouExperienceDay, shanghaiExperienceDay) {
+  const defaultStatus = defaultQuestionnaireFieldStatuses(currentQuestionnaireTemplate).phone;
+  if (defaultStatus === QUESTIONNAIRE_FIELD_STATUS.hidden) {
+    return "手机号";
+  }
+  if (!experienceDay) {
+    return "手机号";
+  }
+  return suzhouExperienceDay || shanghaiExperienceDay
+    ? "电话"
+    : "电话（请准确填写电话号码以接收入校二维码）";
+}
+
+function questionnaireIdCardLabel(experienceDay, experience) {
+  const defaultStatus = defaultQuestionnaireFieldStatuses(currentQuestionnaireTemplate).idCard;
+  if (defaultStatus === QUESTIONNAIRE_FIELD_STATUS.hidden) {
+    return "身份证号";
+  }
+  if (experienceDay) {
+    return "身份证号（学校封闭管理，身份证号码仅用于入校报名）";
+  }
+  return experience ? "身份证号" : "身份证号（仅用于活动入校使用）";
 }
 
 function syncJobTitleFieldPlacement(experienceDay) {
@@ -817,6 +853,99 @@ function toggleConditionalField(field, controls, active, requiredWhenActive) {
       control.classList.remove("is-soft-invalid");
     }
   });
+}
+
+function toggleQuestionnaireFieldByStatus(field, controls, status) {
+  const normalized = normalizeQuestionnaireFieldStatus(status);
+  const active = normalized !== QUESTIONNAIRE_FIELD_STATUS.hidden;
+  const required = normalized === QUESTIONNAIRE_FIELD_STATUS.required;
+  if (field) {
+    field.hidden = !active;
+    field.classList.toggle("required", required);
+  }
+
+  controls.filter(Boolean).forEach((control) => {
+    control.disabled = !active;
+    control.required = active && required;
+    if (!active) {
+      if (control.type === "radio" || control.type === "checkbox") {
+        control.checked = false;
+      } else {
+        control.value = "";
+      }
+    }
+    control.setCustomValidity("");
+    control.classList.remove("is-soft-invalid");
+  });
+}
+
+function currentQuestionnaireFieldStatuses() {
+  const defaults = defaultQuestionnaireFieldStatuses(currentQuestionnaireTemplate);
+  return {
+    phone: normalizeQuestionnaireFieldStatus(currentPhoneFieldStatus, defaults.phone),
+    idCard: normalizeQuestionnaireFieldStatus(currentIdCardFieldStatus, defaults.idCard)
+  };
+}
+
+function defaultQuestionnaireFieldStatuses(templateValue) {
+  const template = String(templateValue || "").trim();
+  const defaults = {
+    phone: QUESTIONNAIRE_FIELD_STATUS.required,
+    idCard: QUESTIONNAIRE_FIELD_STATUS.required
+  };
+
+  if (template === QUESTIONNAIRE_TEMPLATE.promo || template.includes("展架")) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (template === QUESTIONNAIRE_TEMPLATE.suzhouExperienceDay || (template.includes("苏州") && template.includes("体验日"))) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (template === QUESTIONNAIRE_TEMPLATE.shanghaiExperienceDay || (template.includes("上海") && template.includes("体验日"))) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+
+  return defaults;
+}
+
+function normalizeQuestionnaireFieldStatus(value, fallback = QUESTIONNAIRE_FIELD_STATUS.required) {
+  const text = String(complexValueText(value) || "").trim();
+  if (QUESTIONNAIRE_FIELD_STATUS_OPTIONS.includes(text)) {
+    return text;
+  }
+  if (["隐藏", "不显示", "hidden", "hide", "none"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (["显示选填", "选填", "optional"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.optional;
+  }
+  if (["显示必填", "必填", "required"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.required;
+  }
+  return fallback;
+}
+
+function complexValueText(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (Array.isArray(value)) {
+    return value.map(complexValueText).filter(Boolean).join(" / ");
+  }
+  if (typeof value === "object") {
+    return complexValueText(
+      value.label ??
+      value.name ??
+      value.text ??
+      value.value ??
+      value.title ??
+      value.display ??
+      value.displayValue ??
+      value._text ??
+      value._name ??
+      ""
+    );
+  }
+  return String(value);
 }
 
 function updateProgramFields(options = {}) {

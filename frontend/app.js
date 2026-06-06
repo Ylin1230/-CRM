@@ -8,6 +8,8 @@ const ACTIVITY_FIELD = {
   count: "_widget_1772249483639",
   template: "_widget_1779761373894",
   directionPreset: "_widget_1779860682092",
+  idCardFieldStatus: "_widget_1780717506143",
+  phoneFieldStatus: "_widget_1780717506170",
   submitter: "_widget_1779937943910",
   qrStatus: "_widget_1779946717564",
   qr: "_widget_1771904304705"
@@ -54,6 +56,14 @@ const QUESTIONNAIRE_TEMPLATE = {
 };
 
 const QUESTIONNAIRE_TEMPLATE_OPTIONS = Object.values(QUESTIONNAIRE_TEMPLATE);
+
+const QUESTIONNAIRE_FIELD_STATUS = {
+  hidden: "隐藏",
+  optional: "显示（选填）",
+  required: "显示（必填）"
+};
+
+const QUESTIONNAIRE_FIELD_STATUS_OPTIONS = Object.values(QUESTIONNAIRE_FIELD_STATUS);
 
 const EXPERIENCE_DEFAULT_DIRECTION_NAMES = [
   "非全日制科创EMBA",
@@ -187,6 +197,8 @@ const dom = {
   department: document.querySelector("#department"),
   activityCount: document.querySelector("#activityCount"),
   questionnaireTemplate: document.querySelector("#questionnaireTemplate"),
+  phoneFieldStatus: document.querySelector("#phoneFieldStatus"),
+  idCardFieldStatus: document.querySelector("#idCardFieldStatus"),
   directionPresetGroups: document.querySelector("#directionPresetGroups"),
   directionPresetField: document.querySelector(".direction-preset-field"),
   directionPresetSummary: document.querySelector("#directionPresetSummary"),
@@ -222,6 +234,8 @@ Object.assign(dom, {
   detailDept: document.querySelector("#detailDept"),
   detailCount: document.querySelector("#detailCount"),
   detailTemplate: document.querySelector("#detailTemplate"),
+  detailPhoneFieldStatus: document.querySelector("#detailPhoneFieldStatus"),
+  detailIdCardFieldStatus: document.querySelector("#detailIdCardFieldStatus"),
   detailQrStatus: document.querySelector("#detailQrStatus"),
   detailDirectionPreset: document.querySelector("#detailDirectionPreset"),
   detailCreator: document.querySelector("#detailCreator"),
@@ -340,7 +354,11 @@ function bindEvents() {
     renderDirectionPresetPicker();
     refreshEditorQr();
   });
-  dom.questionnaireTemplate.addEventListener("change", updateEditorTemplateState);
+  document.addEventListener("click", handleQuestionnaireFieldStatusClick);
+  dom.questionnaireTemplate.addEventListener("change", () => {
+    applyEditorTemplateDefaultFieldStatuses();
+    updateEditorTemplateState();
+  });
   [dom.activityCode, dom.activityName, dom.questionnaireTemplate].forEach((input) => {
     input.addEventListener("input", refreshEditorQr);
     input.addEventListener("change", refreshEditorQr);
@@ -1741,11 +1759,13 @@ function openEditor(row) {
   dom.department.value = selectedDept;
   dom.activityCount.value = editing ? displayValue(row, ACTIVITY_FIELD.count) : "";
   dom.questionnaireTemplate.value = questionnaireTemplate(row);
+  setEditorQuestionnaireFieldStatuses(row);
   state.editorDirectionSelected = new Set(editing ? directionPresetNamesFromRow(row) : []);
   updateEditorTemplateState();
   renderDirectionPresetPicker();
   dom.generatedQr.value = editing ? displayValue(row, ACTIVITY_FIELD.qr) || buildSurveyUrl(row) : "";
   refreshActivitySelects();
+  syncQuestionnaireFieldStatusControls(dom.activityForm);
   dom.formHint.textContent = editing ? "编辑当前活动记录" : "活动编号由底表自动生成";
   dom.drawerMask.hidden = false;
   dom.editorDrawer.classList.add("open");
@@ -1813,6 +1833,8 @@ function renderDetailRead(row, qr) {
   dom.detailDept.textContent = activityDeptName(row) || "-";
   dom.detailCount.textContent = displayValue(row, ACTIVITY_FIELD.count) || "-";
   dom.detailTemplate.textContent = questionnaireTemplate(row);
+  dom.detailPhoneFieldStatus.innerHTML = questionnaireFieldStatusHtml(questionnairePhoneStatus(row));
+  dom.detailIdCardFieldStatus.innerHTML = questionnaireFieldStatusHtml(questionnaireIdCardStatus(row));
   if (dom.detailQrStatus) {
     dom.detailQrStatus.innerHTML = qrStatusTag(qrStatus(row));
   }
@@ -1855,13 +1877,19 @@ function renderDetailEdit(row, qr) {
         .join("")}
     </select>
   `;
+  dom.detailPhoneFieldStatus.innerHTML = questionnaireFieldStatusSelectHtml("detailEditPhoneFieldStatus", questionnairePhoneStatus(row));
+  dom.detailIdCardFieldStatus.innerHTML = questionnaireFieldStatusSelectHtml("detailEditIdCardFieldStatus", questionnaireIdCardStatus(row));
   if (dom.detailQrStatus) {
     dom.detailQrStatus.innerHTML = qrStatusTag(qrStatus(row));
   }
   if (dom.detailDirectionPreset) {
     renderDetailDirectionPresetEdit();
   }
-  document.querySelector("#detailEditTemplate")?.addEventListener("change", updateDetailTemplateState);
+  syncQuestionnaireFieldStatusControls(dom.detailPage);
+  document.querySelector("#detailEditTemplate")?.addEventListener("change", () => {
+    applyDetailTemplateDefaultFieldStatuses();
+    updateDetailTemplateState();
+  });
   renderDetailMeta(row);
   dom.detailQr.innerHTML = qr
     ? `<img class="detail-qr-img" src="${escapeHtml(qrImageUrl(qr, 156))}" alt="问卷二维码" />`
@@ -1986,7 +2014,15 @@ async function saveDetailEdit() {
     [ACTIVITY_FIELD.dept]: document.querySelector("#detailEditDept")?.value || "",
     [ACTIVITY_FIELD.count]: Number(document.querySelector("#detailEditCount")?.value || 0),
     [ACTIVITY_FIELD.template]: detailTemplateValue,
-    [ACTIVITY_FIELD.directionPreset]: directionPresetFieldValue(detailDirectionNames)
+    [ACTIVITY_FIELD.directionPreset]: directionPresetFieldValue(detailDirectionNames),
+    [ACTIVITY_FIELD.phoneFieldStatus]: normalizeQuestionnaireFieldStatus(
+      document.querySelector("#detailEditPhoneFieldStatus")?.value,
+      defaultQuestionnaireFieldStatuses(detailTemplateValue).phone
+    ),
+    [ACTIVITY_FIELD.idCardFieldStatus]: normalizeQuestionnaireFieldStatus(
+      document.querySelector("#detailEditIdCardFieldStatus")?.value,
+      defaultQuestionnaireFieldStatuses(detailTemplateValue).idCard
+    )
   };
 
   if (!data[ACTIVITY_FIELD.dept]) {
@@ -2047,6 +2083,7 @@ function closeEditor() {
   dom.activityForm.reset();
   dom.recordId.value = "";
   state.editorDirectionSelected.clear();
+  applyEditorTemplateDefaultFieldStatuses();
   updateEditorTemplateState();
   hydrateActivityTypeSelect();
   hydrateDepartmentSelect();
@@ -2126,7 +2163,15 @@ async function saveActivity(event) {
     [ACTIVITY_FIELD.dept]: dom.department.value,
     [ACTIVITY_FIELD.count]: Number(dom.activityCount.value || 0),
     [ACTIVITY_FIELD.template]: dom.questionnaireTemplate.value || QUESTIONNAIRE_TEMPLATE.lecture,
-    [ACTIVITY_FIELD.directionPreset]: directionPresetFieldValue(directionPresetNames)
+    [ACTIVITY_FIELD.directionPreset]: directionPresetFieldValue(directionPresetNames),
+    [ACTIVITY_FIELD.phoneFieldStatus]: normalizeQuestionnaireFieldStatus(
+      dom.phoneFieldStatus?.value,
+      defaultQuestionnaireFieldStatuses(dom.questionnaireTemplate.value).phone
+    ),
+    [ACTIVITY_FIELD.idCardFieldStatus]: normalizeQuestionnaireFieldStatus(
+      dom.idCardFieldStatus?.value,
+      defaultQuestionnaireFieldStatuses(dom.questionnaireTemplate.value).idCard
+    )
   };
   if (!id) {
     data[ACTIVITY_FIELD.qrStatus] = QR_STATUS.enabled;
@@ -2532,6 +2577,181 @@ function questionnaireTemplate(row) {
 
 function isExperienceTemplateValue(value) {
   return String(value || "").trim() === QUESTIONNAIRE_TEMPLATE.experience;
+}
+
+function defaultQuestionnaireFieldStatuses(templateValue) {
+  const template = String(templateValue || "").trim();
+  const defaults = {
+    phone: QUESTIONNAIRE_FIELD_STATUS.required,
+    idCard: QUESTIONNAIRE_FIELD_STATUS.required
+  };
+
+  if (template === QUESTIONNAIRE_TEMPLATE.promo || template.includes("展架")) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (template === QUESTIONNAIRE_TEMPLATE.suzhouExperienceDay || (template.includes("苏州") && template.includes("体验日"))) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (template === QUESTIONNAIRE_TEMPLATE.shanghaiExperienceDay || (template.includes("上海") && template.includes("体验日"))) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+
+  return defaults;
+}
+
+function normalizeQuestionnaireFieldStatus(value, fallback = QUESTIONNAIRE_FIELD_STATUS.required) {
+  const text = String(readComplexValue(value) || "").trim();
+  if (QUESTIONNAIRE_FIELD_STATUS_OPTIONS.includes(text)) {
+    return text;
+  }
+  if (["隐藏", "不显示", "hidden", "hide", "none"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (["显示选填", "选填", "optional"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.optional;
+  }
+  if (["显示必填", "必填", "required"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.required;
+  }
+  return fallback;
+}
+
+function questionnairePhoneStatus(row = {}) {
+  const fallback = defaultQuestionnaireFieldStatuses(questionnaireTemplate(row)).phone;
+  return normalizeQuestionnaireFieldStatus(row[ACTIVITY_FIELD.phoneFieldStatus], fallback);
+}
+
+function questionnaireIdCardStatus(row = {}) {
+  const fallback = defaultQuestionnaireFieldStatuses(questionnaireTemplate(row)).idCard;
+  return normalizeQuestionnaireFieldStatus(row[ACTIVITY_FIELD.idCardFieldStatus], fallback);
+}
+
+function setEditorQuestionnaireFieldStatuses(row) {
+  const defaults = defaultQuestionnaireFieldStatuses(dom.questionnaireTemplate.value);
+  if (dom.phoneFieldStatus) {
+    dom.phoneFieldStatus.value = row
+      ? questionnairePhoneStatus(row)
+      : defaults.phone;
+  }
+  if (dom.idCardFieldStatus) {
+    dom.idCardFieldStatus.value = row
+      ? questionnaireIdCardStatus(row)
+      : defaults.idCard;
+  }
+  syncQuestionnaireFieldStatusControls(dom.activityForm);
+}
+
+function applyEditorTemplateDefaultFieldStatuses() {
+  const defaults = defaultQuestionnaireFieldStatuses(dom.questionnaireTemplate.value);
+  if (dom.phoneFieldStatus) {
+    dom.phoneFieldStatus.value = defaults.phone;
+  }
+  if (dom.idCardFieldStatus) {
+    dom.idCardFieldStatus.value = defaults.idCard;
+  }
+  syncQuestionnaireFieldStatusControls(dom.activityForm);
+}
+
+function applyDetailTemplateDefaultFieldStatuses() {
+  const template = document.querySelector("#detailEditTemplate")?.value || QUESTIONNAIRE_TEMPLATE.lecture;
+  const defaults = defaultQuestionnaireFieldStatuses(template);
+  const phoneInput = document.querySelector("#detailEditPhoneFieldStatus");
+  const idCardInput = document.querySelector("#detailEditIdCardFieldStatus");
+  if (phoneInput) {
+    phoneInput.value = defaults.phone;
+  }
+  if (idCardInput) {
+    idCardInput.value = defaults.idCard;
+  }
+  syncQuestionnaireFieldStatusControls(dom.detailPage);
+}
+
+function questionnaireFieldStatusSelectHtml(id, selected) {
+  return questionnaireFieldStatusControlHtml(id, selected);
+}
+
+function questionnaireFieldStatusControlHtml(id, selected) {
+  const normalized = normalizeQuestionnaireFieldStatus(selected);
+  return `
+    <input id="${escapeHtml(id)}" type="hidden" value="${escapeHtml(normalized)}" />
+    <div class="field-status-segment detail-field-status-segment" data-field-status-control="${escapeHtml(id)}" role="group" aria-label="问卷填写规则">
+      ${QUESTIONNAIRE_FIELD_STATUS_OPTIONS
+        .map((item) => `
+          <button
+            type="button"
+            data-field-status-value="${escapeHtml(item)}"
+            class="${item === normalized ? "active" : ""}"
+            aria-pressed="${item === normalized ? "true" : "false"}"
+            title="${escapeHtml(item)}"
+          >${escapeHtml(questionnaireFieldStatusShortLabel(item))}</button>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
+function questionnaireFieldStatusHtml(status) {
+  const normalized = normalizeQuestionnaireFieldStatus(status);
+  return `<div class="field-status-value">${escapeHtml(normalized)}</div>`;
+}
+
+function questionnaireFieldStatusShortLabel(status) {
+  const normalized = normalizeQuestionnaireFieldStatus(status);
+  if (normalized === QUESTIONNAIRE_FIELD_STATUS.hidden) {
+    return "隐藏";
+  }
+  if (normalized === QUESTIONNAIRE_FIELD_STATUS.optional) {
+    return "选填";
+  }
+  return "必填";
+}
+
+function handleQuestionnaireFieldStatusClick(event) {
+  const button = event.target instanceof Element
+    ? event.target.closest("[data-field-status-value]")
+    : null;
+  if (!button) {
+    return;
+  }
+  const control = button.closest("[data-field-status-control]");
+  if (!control) {
+    return;
+  }
+  const inputId = control.dataset.fieldStatusControl;
+  const input = inputId ? document.getElementById(inputId) : null;
+  if (!input) {
+    return;
+  }
+  input.value = normalizeQuestionnaireFieldStatus(button.dataset.fieldStatusValue);
+  syncQuestionnaireFieldStatusControl(input);
+}
+
+function syncQuestionnaireFieldStatusControls(root = document) {
+  root.querySelectorAll("[data-field-status-control]").forEach((control) => {
+    const inputId = control.dataset.fieldStatusControl;
+    const input = inputId ? document.getElementById(inputId) : null;
+    if (input) {
+      syncQuestionnaireFieldStatusControl(input);
+    }
+  });
+}
+
+function syncQuestionnaireFieldStatusControl(input) {
+  if (!input) {
+    return;
+  }
+  const normalized = normalizeQuestionnaireFieldStatus(input.value);
+  input.value = normalized;
+  document.querySelectorAll("[data-field-status-control]").forEach((control) => {
+    if (control.dataset.fieldStatusControl !== input.id) {
+      return;
+    }
+    control.querySelectorAll("[data-field-status-value]").forEach((button) => {
+      const active = normalizeQuestionnaireFieldStatus(button.dataset.fieldStatusValue) === normalized;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  });
 }
 
 function qrStatus(row) {

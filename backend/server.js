@@ -40,6 +40,8 @@ const ACTIVITY_FIELD = {
   name: "_widget_1771903125107",
   template: "_widget_1779761373894",
   directionPreset: "_widget_1779860682092",
+  idCardFieldStatus: "_widget_1780717506143",
+  phoneFieldStatus: "_widget_1780717506170",
   submitter: "_widget_1779937943910",
   qrStatus: "_widget_1779946717564"
 };
@@ -107,6 +109,14 @@ const QUESTIONNAIRE_TEMPLATE = {
   hefeiExperienceDay: "合肥-EMBA/MBA 体验日",
   shanghaiExperienceDay: "上海-EMBA/MBA体验日"
 };
+
+const QUESTIONNAIRE_FIELD_STATUS = {
+  hidden: "隐藏",
+  optional: "显示（选填）",
+  required: "显示（必填）"
+};
+
+const QUESTIONNAIRE_FIELD_STATUS_OPTIONS = Object.values(QUESTIONNAIRE_FIELD_STATUS);
 
 const STUDENT_FIELD = {
   activityName: "_widget_1778462323391",
@@ -709,6 +719,14 @@ function normalizeActivityPayload(body, options = {}) {
   if (Object.prototype.hasOwnProperty.call(data, ACTIVITY_FIELD.directionPreset)) {
     data[ACTIVITY_FIELD.directionPreset] = normalizeDirectionPresetValue(data[ACTIVITY_FIELD.directionPreset]);
   }
+  const template = readComplexValue(data[ACTIVITY_FIELD.template]) || QUESTIONNAIRE_TEMPLATE.lecture;
+  const defaults = defaultQuestionnaireFieldStatuses(template);
+  if (Object.prototype.hasOwnProperty.call(data, ACTIVITY_FIELD.phoneFieldStatus)) {
+    data[ACTIVITY_FIELD.phoneFieldStatus] = normalizeQuestionnaireFieldStatus(data[ACTIVITY_FIELD.phoneFieldStatus], defaults.phone);
+  }
+  if (Object.prototype.hasOwnProperty.call(data, ACTIVITY_FIELD.idCardFieldStatus)) {
+    data[ACTIVITY_FIELD.idCardFieldStatus] = normalizeQuestionnaireFieldStatus(data[ACTIVITY_FIELD.idCardFieldStatus], defaults.idCard);
+  }
   if (options.defaultQrStatus && !readComplexValue(data[ACTIVITY_FIELD.qrStatus]).trim()) {
     data[ACTIVITY_FIELD.qrStatus] = QR_STATUS.enabled;
   }
@@ -776,8 +794,16 @@ function normalizeDirectionPresetValue(value) {
 
 async function acceptSurveySubmit(body = {}) {
   const surveyData = body?.data && typeof body.data === "object" ? body.data : {};
-  validateSurveySubmitData(surveyData);
-  await ensureSurveyQrEnabled(surveyData);
+  const activityRow = await ensureSurveyQrEnabled(surveyData);
+  const template = body.template || body.questionnaireTemplate || readField(activityRow, ACTIVITY_FIELD.template) || "";
+  const phoneFieldStatus = questionnairePhoneStatus(activityRow, template);
+  const idCardFieldStatus = questionnaireIdCardStatus(activityRow, template);
+  validateSurveySubmitData(surveyData, {
+    template,
+    activityRow,
+    phoneFieldStatus,
+    idCardFieldStatus
+  });
 
   const createdAt = new Date().toISOString();
   const job = {
@@ -786,7 +812,9 @@ async function acceptSurveySubmit(body = {}) {
     attempts: 0,
     data: surveyData,
     options: {
-      template: body.template || body.questionnaireTemplate || ""
+      template,
+      phoneFieldStatus,
+      idCardFieldStatus
     },
     createdAt,
     updatedAt: createdAt,
@@ -806,11 +834,21 @@ async function acceptSurveySubmit(body = {}) {
   };
 }
 
-function validateSurveySubmitData(surveyData) {
+function validateSurveySubmitData(surveyData, options = {}) {
   const phone = normalizePhone(valueOf(surveyData, SURVEY_FIELD.phone));
+  const idCard = valueOf(surveyData, SURVEY_FIELD.idCard);
   const name = valueOf(surveyData, SURVEY_FIELD.personName);
-  if (!name || !phone) {
-    throw new Error("请填写姓名和手机号");
+  const template = options.template || readField(options.activityRow, ACTIVITY_FIELD.template) || QUESTIONNAIRE_TEMPLATE.lecture;
+  const phoneStatus = normalizeQuestionnaireFieldStatus(options.phoneFieldStatus, questionnairePhoneStatus(options.activityRow, template));
+  const idCardStatus = normalizeQuestionnaireFieldStatus(options.idCardFieldStatus, questionnaireIdCardStatus(options.activityRow, template));
+  if (!name) {
+    throw new Error("请填写姓名");
+  }
+  if (phoneStatus === QUESTIONNAIRE_FIELD_STATUS.required && !phone) {
+    throw new Error("请填写手机号");
+  }
+  if (idCardStatus === QUESTIONNAIRE_FIELD_STATUS.required && !idCard) {
+    throw new Error("请填写身份证号");
   }
 }
 
@@ -856,6 +894,8 @@ async function getActivitySurveyConfig(body = {}) {
       template: readField(row, ACTIVITY_FIELD.template) || QUESTIONNAIRE_TEMPLATE.lecture,
       directionPreset,
       directionPresetItems,
+      phoneFieldStatus: questionnairePhoneStatus(row),
+      idCardFieldStatus: questionnaireIdCardStatus(row),
       qrStatus,
       qrEnabled: true
     }
@@ -881,6 +921,7 @@ async function ensureSurveyQrEnabled(surveyData = {}) {
   if (activityQrStatus(row) === QR_STATUS.disabled) {
     throw new Error("二维码已停用");
   }
+  return row;
 }
 
 function activityQrStatus(row = {}) {
@@ -963,15 +1004,19 @@ async function findActivityByCode(sourceCode) {
 async function submitSurveyCascade(surveyData, options = {}) {
   const phone = normalizePhone(valueOf(surveyData, SURVEY_FIELD.phone));
   const name = valueOf(surveyData, SURVEY_FIELD.personName);
-  if (!name || !phone) {
-    throw new Error("请填写姓名和手机号");
+  const phoneStatus = normalizeQuestionnaireFieldStatus(options.phoneFieldStatus, QUESTIONNAIRE_FIELD_STATUS.required);
+  if (!name) {
+    throw new Error("请填写姓名");
+  }
+  if (phoneStatus === QUESTIONNAIRE_FIELD_STATUS.required && !phone) {
+    throw new Error("请填写手机号");
   }
 
   const [surveyResult, priorRows] = await Promise.all([
     callBaishuyunOrThrow(ENDPOINTS.survey.create, {
       data: surveyData
     }),
-    findActivityStudentsByPhone(phone)
+    phone ? findActivityStudentsByPhone(phone) : Promise.resolve([])
   ]);
   const priorCount = priorRows.length;
   const repeatCount = priorCount + 1;
@@ -986,7 +1031,7 @@ async function submitSurveyCascade(surveyData, options = {}) {
     duplicate: false,
     payload: null
   };
-  const leadResultPromise = shouldCreatePotentialLead(surveyData, options)
+  const leadResultPromise = phone && shouldCreatePotentialLead(surveyData, options)
     ? callBaishuyunOrThrow(ENDPOINTS.lead.uniqueCreate, {
         data: buildLeadData(surveyData, options),
         unique: [LEAD_FIELD.phone]
@@ -2904,6 +2949,55 @@ function isExperienceDayTemplate(value) {
     text === QUESTIONNAIRE_TEMPLATE.hefeiExperienceDay ||
     text === QUESTIONNAIRE_TEMPLATE.shanghaiExperienceDay ||
     text.includes("体验日");
+}
+
+function defaultQuestionnaireFieldStatuses(templateValue) {
+  const template = String(templateValue || "").trim();
+  const defaults = {
+    phone: QUESTIONNAIRE_FIELD_STATUS.required,
+    idCard: QUESTIONNAIRE_FIELD_STATUS.required
+  };
+
+  if (template === QUESTIONNAIRE_TEMPLATE.promo || template.includes("展架")) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (template === QUESTIONNAIRE_TEMPLATE.suzhouExperienceDay || (template.includes("苏州") && template.includes("体验日"))) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (template === QUESTIONNAIRE_TEMPLATE.shanghaiExperienceDay || (template.includes("上海") && template.includes("体验日"))) {
+    defaults.idCard = QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+
+  return defaults;
+}
+
+function normalizeQuestionnaireFieldStatus(value, fallback = QUESTIONNAIRE_FIELD_STATUS.required) {
+  const text = String(readComplexValue(value) || "").trim();
+  if (QUESTIONNAIRE_FIELD_STATUS_OPTIONS.includes(text)) {
+    return text;
+  }
+  if (["隐藏", "不显示", "hidden", "hide", "none"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.hidden;
+  }
+  if (["显示选填", "选填", "optional"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.optional;
+  }
+  if (["显示必填", "必填", "required"].includes(text.toLowerCase())) {
+    return QUESTIONNAIRE_FIELD_STATUS.required;
+  }
+  return fallback;
+}
+
+function questionnairePhoneStatus(row = {}, templateValue = "") {
+  const template = templateValue || readField(row, ACTIVITY_FIELD.template) || QUESTIONNAIRE_TEMPLATE.lecture;
+  const fallback = defaultQuestionnaireFieldStatuses(template).phone;
+  return normalizeQuestionnaireFieldStatus(row?.[ACTIVITY_FIELD.phoneFieldStatus], fallback);
+}
+
+function questionnaireIdCardStatus(row = {}, templateValue = "") {
+  const template = templateValue || readField(row, ACTIVITY_FIELD.template) || QUESTIONNAIRE_TEMPLATE.lecture;
+  const fallback = defaultQuestionnaireFieldStatuses(template).idCard;
+  return normalizeQuestionnaireFieldStatus(row?.[ACTIVITY_FIELD.idCardFieldStatus], fallback);
 }
 
 function shouldCreatePotentialLead(surveyData, options = {}) {

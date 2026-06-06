@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>活动问卷调查</title>
-    <link rel="stylesheet" href="./styles.css?v=202606031125" />
+    <link rel="stylesheet" href="./styles.css?v=202606061030" />
   </head>
   <body>
     <div class="app-shell survey-shell embedded-shell">
@@ -21,7 +21,7 @@
               <label for="personName">姓名</label>
               <input id="personName" name="personName" type="text" required />
             </div>
-            <div class="form-field required">
+            <div class="form-field required" id="phoneField">
               <label for="phone" id="phoneLabel">手机号</label>
               <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="11" autocomplete="tel" required />
               <div class="field-hint" id="phoneHint" aria-live="polite"></div>
@@ -345,6 +345,6 @@
       </section>
     </div>
 
-    <script src="./questionnaire.js?v=202606051455"></script>
+    <script src="./questionnaire.js?v=202606061030"></script>
   </body>
 </html>
