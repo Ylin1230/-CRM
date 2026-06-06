@@ -1987,16 +1987,16 @@ button {
   grid-column: 1 / -1;
 }
 
-.questionnaire-field-rules-field {
+.form-field.questionnaire-field-rules-field {
   grid-column: 1 / -1;
 }
 
 .questionnaire-field-rules {
-  min-height: 62px;
-  padding: 10px;
+  min-height: 64px;
+  padding: 10px 12px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   border: 1px solid #dfe5ef;
   border-radius: 6px;
   background: #fbfcff;
@@ -2004,14 +2004,19 @@ button {
 
 .questionnaire-field-rule {
   min-width: 0;
+  min-height: 48px;
+  padding: 8px 10px;
   margin-bottom: 0;
   display: grid;
-  grid-template-columns: 68px minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   color: #2d3748;
   font-size: 13px;
   font-weight: 600;
+  background: #ffffff;
+  border: 1px solid #edf1f6;
+  border-radius: 6px;
 }
 
 .form-field .questionnaire-field-rule {
@@ -2029,45 +2034,119 @@ button {
 
 .field-status-segment {
   min-width: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  flex-wrap: nowrap;
 }
 
 .field-status-segment button {
-  height: 32px;
+  height: 28px;
   min-width: 0;
-  padding: 0 8px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: #536176;
   font-size: 12px;
-  line-height: 30px;
+  line-height: 1;
   text-align: center;
-  background: #ffffff;
-  border: 1px solid #d7dfeb;
-  border-radius: 4px;
+  background: transparent;
+  border: 0;
   cursor: pointer;
 }
 
 .field-status-segment button:hover {
-  border-color: #adc7ef;
-  background: #f6f9ff;
+  color: var(--primary);
 }
 
 .field-status-segment button.active {
-  color: var(--primary);
+  color: #253044;
   font-weight: 600;
-  background: #edf4ff;
-  border-color: #8db7f4;
 }
 
 .field-status-segment button:focus-visible {
   outline: none;
+}
+
+.field-status-segment button:focus-visible .status-radio-dot {
+  box-shadow: 0 0 0 3px rgba(44, 121, 234, 0.14);
+}
+
+.status-radio-dot {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #a8b3c2;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.status-radio-dot::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.field-status-segment button.active .status-radio-dot {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(44, 121, 234, 0.12);
+}
+
+.field-status-segment button.active .status-radio-dot::after {
+  background: var(--primary);
+}
+
+.status-radio-pill {
+  min-width: 38px;
+  height: 24px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #667386;
+  font-size: 12px;
+  border-radius: 999px;
+  background: #f2f5f9;
+}
+
+.field-status-segment button[data-field-status-value="隐藏"] .status-radio-pill {
+  color: #7b6a23;
+  background: #fff5ca;
+}
+
+.field-status-segment button[data-field-status-value="显示（选填）"] .status-radio-pill {
+  color: #2768c7;
+  background: #eaf3ff;
+}
+
+.field-status-segment button[data-field-status-value="显示（必填）"] .status-radio-pill {
+  color: #b7473c;
+  background: #ffece8;
+}
+
+.field-status-segment button.active[data-field-status-value="隐藏"] .status-radio-pill {
+  color: #ffffff;
+  background: #f4bd00;
+}
+
+.field-status-segment button.active[data-field-status-value="显示（选填）"] .status-radio-pill {
+  color: #ffffff;
+  background: var(--primary);
+}
+
+.field-status-segment button.active[data-field-status-value="显示（必填）"] .status-radio-pill {
+  color: #ffffff;
+  background: #f06457;
 }
 
 .detail-field-status-segment {
-  width: min(260px, 100%);
+  width: 100%;
 }
 
 .field-status-value {
@@ -2077,7 +2156,11 @@ button {
   align-items: center;
 }
 
-.detail-field-full {
+.detail-field.detail-field-full {
+  grid-column: 1 / -1;
+}
+
+.detail-page.editing .direction-detail-field {
   grid-column: 1 / -1;
 }
 
@@ -2599,6 +2682,10 @@ button {
 
 .form-field.wide {
   grid-column: span 2;
+}
+
+.form-field.questionnaire-field-rules-field {
+  grid-column: 1 / -1;
 }
 
 .form-field.direction-preset-field {
@@ -5127,6 +5214,31 @@ button {
   .form-field.wide,
   .detail-field.wide {
     grid-column: span 1;
+  }
+
+  .form-field.questionnaire-field-rules-field {
+    grid-column: span 1;
+  }
+
+  .questionnaire-field-rules {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .questionnaire-field-rule {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .field-status-segment {
+    gap: 10px;
+  }
+
+  .status-radio-pill {
+    min-width: 34px;
+    padding: 0 9px;
   }
 
   .sms-layout {

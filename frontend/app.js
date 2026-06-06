@@ -2683,7 +2683,10 @@ function questionnaireFieldStatusControlHtml(id, selected) {
             class="${item === normalized ? "active" : ""}"
             aria-pressed="${item === normalized ? "true" : "false"}"
             title="${escapeHtml(item)}"
-          >${escapeHtml(questionnaireFieldStatusShortLabel(item))}</button>
+          >
+            <span class="status-radio-dot"></span>
+            <span class="status-radio-pill">${escapeHtml(questionnaireFieldStatusShortLabel(item))}</span>
+          </button>
         `)
         .join("")}
     </div>
