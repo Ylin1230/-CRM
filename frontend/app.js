@@ -64,6 +64,7 @@ const QUESTIONNAIRE_FIELD_STATUS = {
 };
 
 const QUESTIONNAIRE_FIELD_STATUS_OPTIONS = Object.values(QUESTIONNAIRE_FIELD_STATUS);
+const QR_DOWNLOAD_SIZE = 720;
 
 const EXPERIENCE_DEFAULT_DIRECTION_NAMES = [
   "非全日制科创EMBA",
@@ -219,7 +220,7 @@ Object.assign(dom, {
   backToListButton: document.querySelector("#backToListButton"),
   detailEditButton: document.querySelector("#detailEditButton"),
   detailDeleteButton: document.querySelector("#detailDeleteButton"),
-  detailPrintButton: document.querySelector("#detailPrintButton"),
+  detailDownloadButton: document.querySelector("#detailDownloadButton"),
   detailEditFooter: document.querySelector("#detailEditFooter"),
   detailSaveButton: document.querySelector("#detailSaveButton"),
   prevDetailButton: document.querySelector("#prevDetailButton"),
@@ -266,7 +267,7 @@ function bindEvents() {
   dom.detailMask.addEventListener("click", showListView);
   dom.detailEditButton.addEventListener("click", toggleDetailEdit);
   dom.detailDeleteButton.addEventListener("click", deleteDetailRow);
-  dom.detailPrintButton.addEventListener("click", printDetailQr);
+  dom.detailDownloadButton?.addEventListener("click", downloadDetailQr);
   dom.detailSaveButton.addEventListener("click", saveDetailEdit);
   dom.prevDetailButton.addEventListener("click", () => stepDetail(-1));
   dom.nextDetailButton.addEventListener("click", () => stepDetail(1));
@@ -1812,7 +1813,9 @@ function renderDetailView() {
   dom.detailPage.classList.toggle("editing", state.detailEditing);
   dom.detailEditFooter.hidden = !state.detailEditing;
   dom.detailDeleteButton.disabled = state.detailEditing;
-  dom.detailPrintButton.disabled = state.detailEditing;
+  if (dom.detailDownloadButton) {
+    dom.detailDownloadButton.disabled = state.detailEditing;
+  }
   dom.cancelDetailEditButton.hidden = !state.detailEditing;
   dom.detailPosition.textContent = `${index + 1} / ${rows.length}`;
   dom.prevDetailButton.disabled = state.detailEditing || index <= 0;
@@ -2324,14 +2327,18 @@ async function syncSelectedQr() {
   }
 }
 
-function printSelectedQrs() {
-  const rows = state.rows
+function selectedQrItems() {
+  return state.rows
     .filter((row) => state.selectedIds.has(rowId(row)))
     .map((row) => {
       const qr = displayValue(row, ACTIVITY_FIELD.qr) || buildSurveyUrl(row);
       return { row, qr };
     })
     .filter((item) => item.qr);
+}
+
+function printSelectedQrs() {
+  const rows = selectedQrItems();
 
   if (!rows.length) {
     setStatus("请选择带有问卷链接的活动");
@@ -2439,16 +2446,71 @@ function printSelectedQrs() {
   setStatus(`已生成 ${rows.length} 个二维码打印页`);
 }
 
-function printDetailQr() {
+async function downloadDetailQr() {
   const row = getDetailRow();
   if (!row) {
     return;
   }
 
-  state.selectedIds.clear();
-  state.selectedIds.add(rowId(row));
-  state.lastSelectedId = rowId(row);
-  printSelectedQrs();
+  const qr = displayValue(row, ACTIVITY_FIELD.qr) || buildSurveyUrl(row);
+  if (!qr) {
+    setStatus("当前活动暂无问卷链接");
+    return;
+  }
+
+  try {
+    await downloadQrImage(qr, qrDownloadFileName(row));
+    setStatus("二维码已下载");
+  } catch (error) {
+    setStatus(`二维码下载失败：${error.message}`);
+  }
+}
+
+async function downloadQrImage(qr, fileName) {
+  const imageUrl = qrImageUrl(qr, QR_DOWNLOAD_SIZE);
+  try {
+    const response = await fetch(imageUrl, { mode: "cors" });
+    if (!response.ok) {
+      throw new Error("二维码图片生成失败");
+    }
+    const blob = await response.blob();
+    triggerBlobDownload(blob, fileName);
+  } catch (error) {
+    triggerUrlDownload(imageUrl, fileName);
+  }
+}
+
+function triggerBlobDownload(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  try {
+    triggerUrlDownload(url, fileName);
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+}
+
+function triggerUrlDownload(url, fileName) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function qrDownloadFileName(row) {
+  const code = displayValue(row, ACTIVITY_FIELD.code) || "activity";
+  const name = displayValue(row, ACTIVITY_FIELD.name) || "questionnaire";
+  return `${safeFileName(code)}-${safeFileName(name)}-问卷二维码.png`;
+}
+
+function safeFileName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "")
+    .slice(0, 60) || "未命名";
 }
 
 function buildSurveyUrl(row) {

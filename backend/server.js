@@ -978,13 +978,22 @@ async function findActivityByCode(sourceCode) {
   let page = 1;
   let seen = 0;
   let total = 0;
+  const pageSignatures = new Set();
 
   while (page <= 50) {
     const payload = await callBaishuyunOrThrow(ENDPOINTS.activity.list, {
       page,
-      limit: pageSize
+      limit: pageSize,
+      skip: (page - 1) * pageSize
     });
     const rows = extractRows(payload);
+    const signature = rows.map(dataIdOf).filter(Boolean).join("|");
+    if (signature && pageSignatures.has(signature)) {
+      break;
+    }
+    if (signature) {
+      pageSignatures.add(signature);
+    }
     const matched = rows.find((row) => readField(row, ACTIVITY_FIELD.code) === normalizedCode);
     if (matched) {
       return matched;
@@ -2729,7 +2738,7 @@ async function callBaishuyunOrThrow(url, body, method = "POST") {
 }
 
 async function findActivityStudentsByPhone(phone) {
-  const normalizedPhone = normalizePhone(phone);
+  const normalizedPhone = comparablePhone(phone);
   if (!normalizedPhone) {
     return [];
   }
@@ -2737,20 +2746,40 @@ async function findActivityStudentsByPhone(phone) {
   const pageSize = 100;
   let page = 1;
   const matches = [];
+  const matchedIds = new Set();
+  const pageSignatures = new Set();
   let seen = 0;
   let total = 0;
 
   while (page <= 50) {
     const payload = await callBaishuyunOrThrow(ENDPOINTS.activityStudent.list, {
       page,
-      limit: pageSize
+      limit: pageSize,
+      skip: (page - 1) * pageSize
     });
     const rows = extractRows(payload);
+    const signature = rows.map(dataIdOf).filter(Boolean).join("|");
+    if (signature && pageSignatures.has(signature)) {
+      break;
+    }
+    if (signature) {
+      pageSignatures.add(signature);
+    }
     total = total || extractTotal(payload, 0);
     seen += rows.length;
-    matches.push(
-      ...rows.filter((row) => normalizePhone(readField(row, STUDENT_FIELD.phone)) === normalizedPhone)
-    );
+    rows.forEach((row) => {
+      if (comparablePhone(readField(row, STUDENT_FIELD.phone)) !== normalizedPhone) {
+        return;
+      }
+      const id = dataIdOf(row);
+      if (id && matchedIds.has(id)) {
+        return;
+      }
+      if (id) {
+        matchedIds.add(id);
+      }
+      matches.push(row);
+    });
 
     if (rows.length < pageSize || (total && seen >= total)) {
       break;
@@ -3046,6 +3075,11 @@ function compactData(data) {
 function normalizePhone(value) {
   const text = String(value || "").trim();
   return text.replace(/\D/g, "") || text;
+}
+
+function comparablePhone(value) {
+  const phone = normalizePhone(value);
+  return /^1\d{10}$/.test(phone) ? phone : "";
 }
 
 function firstText(source, keys) {
